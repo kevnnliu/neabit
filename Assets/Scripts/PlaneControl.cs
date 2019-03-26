@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
+using UnityEngine.Networking;
 
-public class PlaneControl : MonoBehaviour
+public class PlaneControl : NetworkBehaviour
 {
     private Rigidbody rb;
 
@@ -31,24 +32,28 @@ public class PlaneControl : MonoBehaviour
     
     void Update() {
         // Update simulated controller position based on keyboard inputs
-        pitchPosition = ShiftTowards(pitchPosition, Input.GetAxis("Pitch"), controlRate);
-        yawPosition = ShiftTowards(yawPosition, Input.GetAxis("Yaw"), controlRate);
-        rollPosition = ShiftTowards(rollPosition, Input.GetAxis("Roll"), controlRate);
+        if (this.isLocalPlayer) {
+            pitchPosition = ShiftTowards(pitchPosition, Input.GetAxis("Pitch"), controlRate);
+            yawPosition = ShiftTowards(yawPosition, Input.GetAxis("Yaw"), controlRate);
+            rollPosition = ShiftTowards(rollPosition, Input.GetAxis("Roll"), controlRate);
 
-        float throttleInput = Input.GetAxis("Throttle");
-        if (throttleInput > 0)
-        {
-            throttlePosition = ShiftTowards(throttlePosition, 1, throttleInput * controlRate);
-        }
-        else if (throttleInput < 0)
-        {
-            throttlePosition = ShiftTowards(throttlePosition, 0, throttleInput * controlRate);
+            float throttleInput = Input.GetAxis("Throttle");
+            if (throttleInput > 0)
+            {
+                throttlePosition = ShiftTowards(throttlePosition, 1, throttleInput * controlRate);
+            }
+            else if (throttleInput < 0)
+            {
+                throttlePosition = ShiftTowards(throttlePosition, 0, throttleInput * controlRate);
+            }
         }
     }
 
     void FixedUpdate() {
-        rb.AddRelativeTorque(new Vector3(pitchRate * pitchPosition, yawRate * yawPosition, -rollRate * rollPosition));
-        rb.AddRelativeForce(0, 0, throttleCoeff * throttlePosition);
+        if (this.isLocalPlayer) {
+            rb.AddRelativeTorque(new Vector3(pitchRate * pitchPosition, yawRate * yawPosition, -rollRate * rollPosition));
+            rb.AddRelativeForce(0, 0, throttleCoeff * throttlePosition);
+        }
     }
 
     // Updates a value towards a target value, with a maximum delta per second
