@@ -17,7 +17,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &4621199477211740810
 Transform:
   m_ObjectHideFlags: 0
@@ -26,7 +26,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6014595074336235561}
   m_LocalRotation: {x: 0.13052616, y: -0, z: -0, w: 0.9914449}
-  m_LocalPosition: {x: 0.45522308, y: 2.487238, z: 3.211052}
+  m_LocalPosition: {x: 0.5, y: 2.5, z: 3}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 6917806272866004677}
@@ -131,6 +131,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5c00b10e5b1ccad42a0cc6714c4bb627, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  pilotCamera: {fileID: 6014595074336235561}
   throttleCoeff: 150
   pitchRate: 10
   yawRate: 0
@@ -185,7 +186,7 @@ MonoBehaviour:
     i14: 0
     i15: 0
   m_ServerOnly: 0
-  m_LocalPlayerAuthority: 0
+  m_LocalPlayerAuthority: 1
 --- !u!114 &3982399483660158471
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -232,7 +233,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6917806273955862765}
   m_LocalRotation: {x: 0.2588191, y: -0, z: -0, w: 0.9659258}
-  m_LocalPosition: {x: 0.45522308, y: 0.48723793, z: 9.211052}
+  m_LocalPosition: {x: 0.5, y: 0.5, z: 9}
   m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
   m_Children:
   - {fileID: 6917806273099021948}

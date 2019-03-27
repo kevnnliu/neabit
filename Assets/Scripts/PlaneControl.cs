@@ -3,6 +3,7 @@ using UnityEngine.Networking;
 
 public class PlaneControl : NetworkBehaviour
 {
+    public GameObject pilotCamera;
     private Rigidbody rb;
 
     // PHYSICS values
@@ -22,6 +23,9 @@ public class PlaneControl : NetworkBehaviour
     public float controlRate = 2;
 
     void Start() {
+        if (isLocalPlayer) {
+            pilotCamera.SetActive(true);
+        }
         rb = GetComponent<Rigidbody>();
 
         pitchPosition = 0;
