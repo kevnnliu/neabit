@@ -41,7 +41,12 @@ public class SPPlaneControl : MonoBehaviour
         cyclicPositionY = ShiftTowards(cyclicPositionY, Input.GetAxis("Pitch"), controlRate);
         collectivePosition = ShiftTowards(collectivePosition, Input.GetAxis("Throttle"), controlRate);
 
-        Vector3 accel = Vector3.forward * collectivePosition * maximumVelocity;
+        // Rotate based on inputs
+        //transform.Rotate(Vector3.forward, -cyclicPositionX * 60 * Time.deltaTime, Space.Self);
+
+        Vector3 accel = Vector3.left * cyclicPositionX * maximumVelocity
+            + Vector3.down * cyclicPositionY * maximumVelocity
+            + Vector3.forward * collectivePosition * maximumVelocity;
         velocity = Vector3.Lerp(velocity, accel, 0.05f);
         // Update physics manually
         ApplyVelocity(velocity);
