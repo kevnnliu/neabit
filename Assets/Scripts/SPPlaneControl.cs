@@ -6,7 +6,6 @@ public class SPPlaneControl : MonoBehaviour
 {
     public GameObject pilotCamera;
     public Transform planet;
-    private Rigidbody rb;
 
     // PHYSICS values
     public Vector3 sphericalCoords;
@@ -15,6 +14,8 @@ public class SPPlaneControl : MonoBehaviour
     private float cyclicPositionX = 0;
     private float cyclicPositionY = 0;
     private float collectivePosition = 0;
+
+    private bool hoverState = false;
 
     private Vector3 velocity = Vector3.zero;
 
@@ -26,12 +27,12 @@ public class SPPlaneControl : MonoBehaviour
     public float cyclicPower = 10;
     public float collectivePower = 10;
     public float maximumVelocity = 10;
+    public float dragForce = 1;
+    public float turnDrag = 3;
 
     void Start()
     {
         pilotCamera.SetActive(true);
-        rb = GetComponent<Rigidbody>();
-        rb.isKinematic = true;
     }
 
     void Update()
@@ -39,50 +40,94 @@ public class SPPlaneControl : MonoBehaviour
         // Update simulated controller position based on keyboard inputs
         cyclicPositionX = ShiftTowards(cyclicPositionX, Input.GetAxis("Roll"), controlRate);
         cyclicPositionY = ShiftTowards(cyclicPositionY, Input.GetAxis("Pitch"), controlRate);
-        collectivePosition = ShiftTowards(collectivePosition, Input.GetAxis("Throttle"), controlRate);
+
+        float throttle = Input.GetAxis("Throttle");
+        if (throttle > 0)
+        {
+            collectivePosition = ShiftTowards(collectivePosition, 1, throttle * controlRate);
+        }
+        else if (throttle < 0)
+        {
+            collectivePosition = ShiftTowards(collectivePosition, 0, -throttle * controlRate);
+        }
+        hoverState = Input.GetButton("Engine Release");
 
         // Rotate based on inputs
-        //transform.Rotate(Vector3.forward, -cyclicPositionX * 60 * Time.deltaTime, Space.Self);
-
-        Vector3 accel = Vector3.left * cyclicPositionX * maximumVelocity
-            + Vector3.down * cyclicPositionY * maximumVelocity
-            + Vector3.forward * collectivePosition * maximumVelocity;
-        velocity = Vector3.Lerp(velocity, accel, 0.05f);
+        Vector3 accel;
+        Vector3 turn;
+        if (hoverState)
+        {
+            accel = new Vector3(
+                cyclicPositionX * cyclicPower,
+                (collectivePosition - 0.4f) * collectivePower,
+                cyclicPositionY * cyclicPower
+                );
+            turn = Vector3.zero;
+        }
+        else
+        {
+            accel = Vector3.forward * collectivePosition * collectivePower;
+            turn = Vector3.up * cyclicPositionX;
+        }
         // Update physics manually
-        ApplyVelocity(velocity);
+        ApplyAcceleration(accel, turn);
+        ApplyVelocity();
+        ApplyDrag();
 
-        // Reset view to flat
-        Vector3 targetUp = transform.position - planet.position;
-        Vector3 targetForward = Vector3.ProjectOnPlane(transform.forward, targetUp).normalized;
-        Quaternion targetRotation = Quaternion.LookRotation(targetForward, targetUp);
-        transform.rotation = ShiftTowards(transform.rotation, targetRotation, turnRate);
+        // Update inner (graphics only) physics
+        SetOrientation();
 
         sphericalCoords = ToSpherical(velocity);
+
+        // Highly temporary
+        transform.GetChild(0).Find("Panel").Find("straight_lever").Find("Wheel").localRotation = Quaternion.Euler(
+            0, -90, 90 - 75 * collectivePosition
+            );
     }
 
     // Physics stuff
-    void ApplyVelocity(Vector3 velocity)
+    void ApplyAcceleration(Vector3 accel, Vector3 turn)
+    {
+        float turnReduction = 1 + accel.sqrMagnitude / (dragForce * dragForce) * turnDrag;
+        transform.Rotate(turn * turnRate * Time.deltaTime / turnReduction);
+        velocity += accel * Time.deltaTime;
+    }
+
+    void ApplyVelocity()
     {
         Vector3 up = transform.position.normalized;
         Vector3 right = Vector3.Cross(transform.forward, up).normalized;
         Vector3 forward = Vector3.Cross(up, right);
 
-        Vector3 newPos = transform.position + right * velocity.x + forward * velocity.z;
+        Vector3 newPos = transform.position + (right * velocity.x + forward * velocity.z) * Time.deltaTime;
         newPos = newPos.normalized * transform.position.magnitude;
-        transform.position = newPos + up * velocity.y;
+        transform.position = newPos + (up * velocity.y) * Time.deltaTime;
     }
-    
-    Vector3 ApplyAcceleration(Vector3 velocity, Vector3 accel, float maxVelocity)
+
+    void ApplyDrag()
     {
-        float v = velocity.magnitude / maxVelocity;
-        Vector3 dV = accel * Time.deltaTime;
-        Vector3 target = velocity + dV;
-        float vtarget = target.magnitude;
-        if (vtarget > maxVelocity)
+        // Reduce floating-point error
+        if (velocity.sqrMagnitude < 0.00001)
         {
-            return target * maxVelocity / vtarget;
+            velocity = Vector3.zero;
         }
-        return target;
+        float vFactor = velocity.sqrMagnitude / (maximumVelocity * maximumVelocity);
+        velocity -= velocity.normalized * vFactor * dragForce * Time.deltaTime;
+        // Reset view to flat
+        Vector3 targetUp = transform.position - planet.position;
+        Vector3 targetForward = Vector3.ProjectOnPlane(transform.forward, targetUp).normalized;
+        Quaternion targetRotation = Quaternion.LookRotation(targetForward, targetUp);
+        transform.rotation = ShiftTowards(transform.rotation, targetRotation, turnRate);
+    }
+
+    void SetOrientation()
+    {
+        float turnReduction = 1 + collectivePosition * turnDrag;
+        transform.GetChild(0).localRotation = Quaternion.Slerp(
+            transform.GetChild(0).localRotation,
+            Quaternion.Euler(cyclicPositionY * 15, 0, -cyclicPositionX * 30 / turnReduction),
+            0.1f
+            );
     }
 
     // Updates a value towards a target value, with a maximum delta per second
