@@ -11,11 +11,9 @@ public class SPPlaneControl : MonoBehaviour
     public Vector3 sphericalCoords;
 
     // SIMULATED CONTROLLER (Will be actual controller in VR)
-    private float cyclicPositionX = 0;
-    private float cyclicPositionY = 0;
+    private float joystickX = 0;
+    private float joystickY = 0;
     private float collectivePosition = 0;
-
-    private bool hoverState = false;
 
     private Vector3 velocity = Vector3.zero;
 
@@ -25,71 +23,49 @@ public class SPPlaneControl : MonoBehaviour
 
     // Control parameters
     public float cyclicPower = 10;
-    public float collectivePower = 10;
+    public float throttlePower = 10;
     public float maximumVelocity = 10;
     public float dragForce = 1;
     public float turnDrag = 3;
 
-    void Start()
+    void Start() { }
+
+    // Returns the X/Y position of the joystick (-1 to 1), from VR or keyboard
+    private void UpdateInputs()
     {
-        pilotCamera.SetActive(true);
+        Vector2 input = new Vector2(Input.GetAxis("JoystickX"), Input.GetAxis("JoystickY"));
+        if (input.sqrMagnitude > 1)
+        {
+            input.Normalize();
+        }
+        joystickX = ShiftTowards(joystickX, input.x, controlRate);
+        joystickY = ShiftTowards(joystickY, input.y, controlRate);
     }
 
     void Update()
     {
         // Update simulated controller position based on keyboard inputs
-        cyclicPositionX = ShiftTowards(cyclicPositionX, Input.GetAxis("Roll"), controlRate);
-        cyclicPositionY = ShiftTowards(cyclicPositionY, Input.GetAxis("Pitch"), controlRate);
-
-        float throttle = Input.GetAxis("Throttle");
-        if (throttle > 0)
-        {
-            collectivePosition = ShiftTowards(collectivePosition, 1, throttle * controlRate);
-        }
-        else if (throttle < 0)
-        {
-            collectivePosition = ShiftTowards(collectivePosition, 0, -throttle * controlRate);
-        }
-        hoverState = Input.GetButton("Engine Release");
+        UpdateInputs();
 
         // Rotate based on inputs
-        Vector3 accel;
-        Vector3 turn;
-        if (hoverState)
-        {
-            accel = new Vector3(
-                cyclicPositionX * cyclicPower,
-                (collectivePosition - 0.4f) * collectivePower,
-                cyclicPositionY * cyclicPower
-                );
-            turn = Vector3.zero;
-        }
-        else
-        {
-            accel = Vector3.forward * collectivePosition * collectivePower;
-            turn = Vector3.up * cyclicPositionX;
-        }
+        Vector3 accel = Vector3.forward * joystickY * throttlePower;
+        Vector3 turn = Vector3.up * joystickX;
         // Update physics manually
         ApplyAcceleration(accel, turn);
         ApplyVelocity();
         ApplyDrag();
 
         // Update inner (graphics only) physics
-        SetOrientation();
+        SetOrientation(turn);
 
         sphericalCoords = ToSpherical(velocity);
-
-        // Highly temporary
-        transform.GetChild(0).Find("Panel").Find("straight_lever").Find("Wheel").localRotation = Quaternion.Euler(
-            0, -90, 90 - 75 * collectivePosition
-            );
     }
 
     // Physics stuff
     void ApplyAcceleration(Vector3 accel, Vector3 turn)
     {
         float turnReduction = 1 + accel.sqrMagnitude / (dragForce * dragForce) * turnDrag;
-        transform.Rotate(turn * turnRate * Time.deltaTime / turnReduction);
+        transform.Rotate(turn * turnRate * Time.deltaTime);
         velocity += accel * Time.deltaTime;
     }
 
@@ -120,12 +96,11 @@ public class SPPlaneControl : MonoBehaviour
         transform.rotation = ShiftTowards(transform.rotation, targetRotation, turnRate);
     }
 
-    void SetOrientation()
+    void SetOrientation(Vector3 turn)
     {
-        float turnReduction = 1 + collectivePosition * turnDrag;
         transform.GetChild(0).localRotation = Quaternion.Slerp(
             transform.GetChild(0).localRotation,
-            Quaternion.Euler(cyclicPositionY * 15, 0, -cyclicPositionX * 30 / turnReduction),
+            Quaternion.Euler(joystickY * 5, 0, -joystickX * 20),
             0.1f
             );
     }
