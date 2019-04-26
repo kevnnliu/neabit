@@ -4,15 +4,14 @@ using UnityEngine;
 
 public class SPPlaneControl : MonoBehaviour
 {
-    public GameObject pilotCamera;
     public Transform planet;
 
     // PHYSICS values
     public Vector3 sphericalCoords;
 
     // SIMULATED CONTROLLER (Will be actual controller in VR)
-    private float joystickX = 0;
-    private float joystickY = 0;
+    protected float joystickX = 0;
+    protected float joystickY = 0;
     private float collectivePosition = 0;
 
     private Vector3 velocity = Vector3.zero;
@@ -31,7 +30,7 @@ public class SPPlaneControl : MonoBehaviour
     void Start() { }
 
     // Returns the X/Y position of the joystick (-1 to 1), from VR or keyboard
-    private void UpdateInputs()
+    protected void UpdateInputs()
     {
         Vector2 input = new Vector2(Input.GetAxis("JoystickX"), Input.GetAxis("JoystickY"));
         if (input.sqrMagnitude > 1)
