@@ -1,0 +1,15 @@
+﻿<Properties StartupConfiguration="{4B6C9074-30B9-24F7-63FE-334FF6486B8B}|">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Scripts/Spaceship.cs">
+    <Files>
+      <File FileName="Assets/Scripts/HealthBar.cs" Line="13" Column="9" />
+      <File FileName="Assets/Scripts/Spaceship.cs" Line="7" Column="18" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.ItemProperties.Assembly-CSharp PreferredExecutionTarget="Unity.Editor" />
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MultiItemStartupConfigurations />
+</Properties>
