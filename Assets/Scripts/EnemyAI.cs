@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class EnemyAI : SPPlaneControl
 {
-    public GameObject player = GameObject.Find("Ship");
+    public GameObject player;
 
     [SerializeField]
     public GameObject enemy;
