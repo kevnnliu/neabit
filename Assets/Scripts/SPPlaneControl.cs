@@ -89,10 +89,10 @@ public class SPPlaneControl : MonoBehaviour
         float vFactor = velocity.sqrMagnitude / (maximumVelocity * maximumVelocity);
         velocity -= velocity.normalized * vFactor * dragForce * Time.deltaTime;
         // Reset view to flat
-        Vector3 targetUp = transform.position - planet.position;
+        /* Vector3 targetUp = transform.position - planet.position;
         Vector3 targetForward = Vector3.ProjectOnPlane(transform.forward, targetUp).normalized;
         Quaternion targetRotation = Quaternion.LookRotation(targetForward, targetUp);
-        transform.rotation = ShiftTowards(transform.rotation, targetRotation, turnRate);
+        transform.rotation = ShiftTowards(transform.rotation, targetRotation, turnRate); */
     }
 
     void SetOrientation(Vector3 turn)

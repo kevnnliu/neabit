@@ -55,7 +55,7 @@ Camera:
     width: 1
     height: 1
   near clip plane: 0.3
-  far clip plane: 1000
+  far clip plane: 10000
   field of view: 60
   orthographic: 0
   orthographic size: 5
@@ -110,7 +110,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6917806272866004672}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 21.224777, y: 5.362762, z: 60.818947}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4621199477211740810}
@@ -132,10 +132,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   pilotCamera: {fileID: 6014595074336235561}
+  laserPrefab: {fileID: 9073130967879404148, guid: da282432c17994ebb812dcef8fce24e7,
+    type: 3}
   throttleCoeff: 150
-  pitchRate: 10
-  yawRate: 0
-  rollRate: 10
+  pitchRate: 6
+  yawRate: 6
+  rollRate: 6
   dragCoeff: 1.01
   controlRate: 2
 --- !u!54 &6917806272866004679
