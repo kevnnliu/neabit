@@ -26,7 +26,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6014595074336235561}
   m_LocalRotation: {x: 0.13052616, y: -0, z: -0, w: 0.9914449}
-  m_LocalPosition: {x: 0.5, y: 2.5, z: 3}
+  m_LocalPosition: {x: 0, y: 5, z: -5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 6917806272866004677}
@@ -95,9 +95,10 @@ GameObject:
   - component: {fileID: 6917806272866004679}
   - component: {fileID: 8079072682258899610}
   - component: {fileID: 3982399483660158471}
+  - component: {fileID: 1561122489770068761}
   m_Layer: 0
   m_Name: UFO
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -110,7 +111,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6917806272866004672}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 269, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4621199477211740810}
@@ -134,11 +135,13 @@ MonoBehaviour:
   pilotCamera: {fileID: 6014595074336235561}
   laserPrefab: {fileID: 9073130967879404148, guid: da282432c17994ebb812dcef8fce24e7,
     type: 3}
-  throttleCoeff: 150
-  pitchRate: 6
-  yawRate: 6
-  rollRate: 6
+  hp: 100
+  throttleCoeff: 200
+  pitchRate: 40
+  yawRate: 40
+  rollRate: 40
   dragCoeff: 1.01
+  offset: 0
   controlRate: 2
 --- !u!54 &6917806272866004679
 Rigidbody:
@@ -211,6 +214,19 @@ MonoBehaviour:
   m_SnapThreshold: 5
   m_InterpolateRotation: 1
   m_InterpolateMovement: 1
+--- !u!65 &1561122489770068761
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6917806272866004672}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 8, y: 3, z: 10}
+  m_Center: {x: 0, y: 1, z: 0}
 --- !u!1 &6917806273955862765
 GameObject:
   m_ObjectHideFlags: 0
@@ -235,7 +251,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6917806273955862765}
   m_LocalRotation: {x: 0.2588191, y: -0, z: -0, w: 0.9659258}
-  m_LocalPosition: {x: 0.5, y: 0.5, z: 9}
+  m_LocalPosition: {x: 0, y: 2, z: 0}
   m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
   m_Children:
   - {fileID: 6917806273099021948}
@@ -257,15 +273,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: d14b232520e87c142a4df59b17ef4a90, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.5
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: d14b232520e87c142a4df59b17ef4a90, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -2.0152
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: d14b232520e87c142a4df59b17ef4a90, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 9.0393
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: d14b232520e87c142a4df59b17ef4a90, type: 3}
       propertyPath: m_LocalRotation.x

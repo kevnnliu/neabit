@@ -48,6 +48,10 @@ public class PlaneControl : NetworkBehaviour
                 GameObject l = Instantiate(laserPrefab, rb.position + (transform.forward * offset), transform.rotation);
                 l.GetComponent<Laser>().owner = this.gameObject;
             }
+            if (hp <= 0) {
+                print("You suck");
+                hp = 100;
+            }
         }
     }
 
@@ -72,17 +76,5 @@ public class PlaneControl : NetworkBehaviour
             return Mathf.Min(value + Mathf.Abs(delta) * Time.deltaTime, target);
         }
         return Mathf.Max(value - Mathf.Abs(delta) * Time.deltaTime, target);
-    }
-
-    private void OnTriggerEnter(Collider col) {
-        if (col.gameObject.tag == "GlowBois") {
-            if (col.gameObject.GetComponent<Laser>().owner != this.gameObject) {
-                hp -= col.gameObject.GetComponent<Laser>().damage;
-
-                if (hp <= 0) {
-                    print("You suck");
-                }
-            }
-        }
     }
 }
