@@ -6,6 +6,8 @@ public class PlaneControl : NetworkBehaviour
     public GameObject pilotCamera;
     private Rigidbody rb;
     public GameObject laserPrefab;
+
+    [SyncVar]
     public float hp;
 
     // PHYSICS values
@@ -15,6 +17,7 @@ public class PlaneControl : NetworkBehaviour
     public float rollRate = 4;
     public float dragCoeff;
     public float offset;
+    public GameObject spawn;
 
     // SIMULATED CONTROLLER (Will be actual controller in VR)
     private float pitchPosition;
@@ -35,6 +38,7 @@ public class PlaneControl : NetworkBehaviour
         yawPosition = 0;
         throttlePosition = 1;
         throttleInput = false;
+        spawn = GameObject.Find("SpawnLocation");
     }
     
     void Update() {
@@ -45,11 +49,10 @@ public class PlaneControl : NetworkBehaviour
 
             throttleInput = Input.GetKey(KeyCode.Space);
             if (Input.GetKeyDown(KeyCode.P)) {
-                GameObject l = Instantiate(laserPrefab, rb.position + (transform.forward * offset), transform.rotation);
-                l.GetComponent<Laser>().owner = this.gameObject;
+                RpcShoot();
             }
             if (hp <= 0) {
-                print("You suck");
+                transform.position = spawn.transform.position;
                 hp = 100;
             }
         }
@@ -76,5 +79,11 @@ public class PlaneControl : NetworkBehaviour
             return Mathf.Min(value + Mathf.Abs(delta) * Time.deltaTime, target);
         }
         return Mathf.Max(value - Mathf.Abs(delta) * Time.deltaTime, target);
+    }
+
+    [ClientRpc]
+    public void RpcShoot() {
+        GameObject l = Instantiate(laserPrefab, rb.position + (transform.forward * offset), transform.rotation);
+        l.GetComponent<Laser>().owner = this.gameObject;
     }
 }
