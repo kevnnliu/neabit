@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Networking;
 
-public class HealthBar : MonoBehaviour
+public class HealthBar : NetworkBehaviour
 {
     public Image healthBar;
+    public GameObject pC;
 
     // Start is called before the first frame update
     void Start()
@@ -16,6 +18,9 @@ public class HealthBar : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        healthBar.fillAmount = (float) Spaceship.health / (float) Spaceship.maxHealth;
+        if (transform.GetComponentInParent<PlaneControl>().isLocalPlayer)
+        {
+            healthBar.fillAmount = pC.GetComponent<PlaneControl>().hp / 100;
+        }
     }
 }

@@ -24,6 +24,7 @@ public class PlaneControl : NetworkBehaviour
     private float yawPosition;
     private float throttlePosition;
     private bool throttleInput;
+    private float fireRate;
 
     // How much keyboard inputs affect controller (will not be necessary in VR)
     public float controlRate = 2;
@@ -38,19 +39,46 @@ public class PlaneControl : NetworkBehaviour
         yawPosition = 0;
         throttlePosition = 1;
         throttleInput = false;
+        fireRate = 0.5f;
         spawn = GameObject.Find("SpawnLocation");
     }
     
     void Update() {
         // Update simulated controller position based on keyboard inputs
         if (this.isLocalPlayer) {
-            pitchPosition = ShiftTowards(pitchPosition, Input.GetAxis("JoystickY"), controlRate);
-            yawPosition = ShiftTowards(yawPosition, Input.GetAxis("JoystickX"), controlRate);
+            OVRInput.Update();
+            pitchPosition = ShiftTowards(pitchPosition, OVRInput.Get(OVRInput.Axis2D.PrimaryThumbstick).y, controlRate);
+            yawPosition = ShiftTowards(yawPosition, OVRInput.Get(OVRInput.Axis2D.PrimaryThumbstick).x, controlRate);
 
-            throttleInput = Input.GetKey(KeyCode.Space);
-            if (Input.GetKeyDown(KeyCode.P)) {
+            //pitchPosition = ShiftTowards(pitchPosition, Input.GetAxis("JoystickY"), controlRate);
+            //yawPosition = ShiftTowards(yawPosition, Input.GetAxis("JoystickX"), controlRate);
+
+            //throttleInput = Input.GetKey(KeyCode.Space);
+            throttleInput = OVRInput.Get(OVRInput.Axis1D.PrimaryHandTrigger) > 0.5;
+
+            /*if (Input.GetKeyDown(KeyCode.P)) {
+                RpcShoot();
+            }*/
+
+            print(OVRInput.GetActiveController());
+            print(OVRInput.Get(OVRInput.Axis1D.PrimaryHandTrigger));
+            print(OVRInput.Get(OVRInput.Axis1D.PrimaryIndexTrigger));
+
+            if (fireRate > 0)
+            {
+                fireRate -= Time.deltaTime;
+            }
+            else
+            {
+                fireRate = 0;
+            }
+
+            if (OVRInput.Get(OVRInput.Axis1D.PrimaryIndexTrigger) > 0.5 && fireRate == 0)
+            {
+                fireRate = 0.4f;
                 RpcShoot();
             }
+
             if (hp <= 0) {
                 transform.position = spawn.transform.position;
                 hp = 100;
@@ -59,6 +87,7 @@ public class PlaneControl : NetworkBehaviour
     }
 
     void FixedUpdate() {
+        OVRInput.FixedUpdate();
         if (this.isLocalPlayer) {
             rb.AddRelativeTorque(new Vector3(pitchRate * pitchPosition, 0, -yawRate * yawPosition));
             if (throttleInput) {
