@@ -15,20 +15,7 @@ Rigidbody:
   m_IsKinematic: 0
   m_Interpolate: 0
   m_Constraints: 0
-  m_CollisionDetection: 0
---- !u!135 &3943075713836701161
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9073130967879404148}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 1
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.5
-  m_Center: {x: 0, y: 0, z: 4}
+  m_CollisionDetection: 1
 --- !u!114 &515761295
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -43,7 +30,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   damage: 10
   laserSpeed: 690
-  owner: {fileID: 0}
+  owner: 
 --- !u!114 &515761296
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -63,7 +50,7 @@ MonoBehaviour:
   m_SyncSpin: 0
   m_MovementTheshold: 0.001
   m_VelocityThreshold: 0.0001
-  m_SnapThreshold: 5
+  m_SnapThreshold: 1
   m_InterpolateRotation: 1
   m_InterpolateMovement: 1
 --- !u!114 &515761297

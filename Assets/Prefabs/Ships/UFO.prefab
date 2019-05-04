@@ -282,9 +282,9 @@ GameObject:
   - component: {fileID: 6917806272866004677}
   - component: {fileID: 6917806272866004678}
   - component: {fileID: 6917806272866004679}
-  - component: {fileID: 8079072682258899610}
-  - component: {fileID: 3982399483660158471}
   - component: {fileID: 1561122489770068761}
+  - component: {fileID: 8079072682258899610}
+  - component: {fileID: 1499519360298258925}
   m_Layer: 0
   m_Name: UFO
   m_TagString: Player
@@ -304,7 +304,6 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4621199477211740810}
-  - {fileID: 6917806273955862764}
   - {fileID: 3954700565710957367}
   m_Father: {fileID: 0}
   m_RootOrder: 0
@@ -332,6 +331,8 @@ MonoBehaviour:
   dragCoeff: 1.01
   offset: 0
   spawn: {fileID: 0}
+  keyboardControl: 1
+  _ID: 
   controlRate: 2
 --- !u!54 &6917806272866004679
 Rigidbody:
@@ -348,7 +349,20 @@ Rigidbody:
   m_IsKinematic: 0
   m_Interpolate: 0
   m_Constraints: 0
-  m_CollisionDetection: 0
+  m_CollisionDetection: 1
+--- !u!65 &1561122489770068761
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6917806272866004672}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 8, y: 4, z: 8}
+  m_Center: {x: 0, y: 1, z: 0}
 --- !u!114 &8079072682258899610
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -382,7 +396,7 @@ MonoBehaviour:
     i15: 0
   m_ServerOnly: 0
   m_LocalPlayerAuthority: 1
---- !u!114 &3982399483660158471
+--- !u!114 &1499519360298258925
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -398,25 +412,12 @@ MonoBehaviour:
   m_SendInterval: 0.1
   m_SyncRotationAxis: 7
   m_RotationSyncCompression: 0
-  m_SyncSpin: 0
+  m_SyncSpin: 1
   m_MovementTheshold: 0.001
   m_VelocityThreshold: 0.0001
-  m_SnapThreshold: 5
+  m_SnapThreshold: 1
   m_InterpolateRotation: 1
   m_InterpolateMovement: 1
---- !u!65 &1561122489770068761
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6917806272866004672}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Size: {x: 7, y: 3, z: 8}
-  m_Center: {x: 0, y: 1, z: 0}
 --- !u!1 &6917806273955862765
 GameObject:
   m_ObjectHideFlags: 0
@@ -440,15 +441,15 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6917806273955862765}
-  m_LocalRotation: {x: 0.2588191, y: -0, z: -0, w: 0.9659258}
-  m_LocalPosition: {x: 0, y: 2, z: 0}
-  m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
+  m_LocalRotation: {x: -0, y: -0.86602545, z: -0.49999997, w: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0.59598655}
+  m_LocalScale: {x: 0.10060516, y: 0.12851498, z: 0.08755175}
   m_Children:
   - {fileID: 6917806273099021948}
   - {fileID: 6917806273738356476}
   - {fileID: 6917806272863017640}
-  m_Father: {fileID: 6917806272866004677}
-  m_RootOrder: 1
+  m_Father: {fileID: 3954700565710957367}
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 30, y: 0, z: 0}
 --- !u!1001 &3954700565710827959
 PrefabInstance:
@@ -495,7 +496,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: d14b232520e87c142a4df59b17ef4a90, type: 3}
       propertyPath: m_RootOrder
-      value: 2
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: d14b232520e87c142a4df59b17ef4a90, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
