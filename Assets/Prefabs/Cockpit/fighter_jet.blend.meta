@@ -4,11 +4,26 @@ ModelImporter:
   serializedVersion: 23
   fileIDToRecycleName:
     100000: //RootNode
+    100002: Exterior
+    100004: Interior
     400000: //RootNode
+    400002: Exterior
+    400004: Interior
     2100000: unnamed
+    2100002: Glass
+    2100004: White
+    2100006: Black
+    2100008: Teal
+    2100010: Cyan
     2300000: //RootNode
+    2300002: Exterior
+    2300004: Interior
     3300000: //RootNode
+    3300002: Exterior
+    3300004: Interior
     4300000: Plane
+    4300002: Interior
+    4300004: Exterior
     7400000: Default Take
     9500000: //RootNode
   externalObjects: {}
