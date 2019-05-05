@@ -19,3 +19,7 @@
 
 # Unity3D Generated File On Crash Reports
 sysinfo.txt
+
+# Custom Ignore Files
+*.blend1
+*.blend1.meta
