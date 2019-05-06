@@ -355,14 +355,15 @@ MonoBehaviour:
     type: 3}
   hp: 100
   throttleCoeff: 200
-  pitchRate: 40
-  yawRate: 30
+  pitchRate: 60
+  yawRate: 40
   rollRate: 60
   dragCoeff: 1.01
   offset: 1
   spawn: {fileID: 0}
   keyboardControl: 1
   _ID: 
+  snapThreshold: 5
   controlRate: 2
 --- !u!54 &1071132523883764433
 Rigidbody:

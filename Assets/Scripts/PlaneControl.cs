@@ -21,6 +21,7 @@ public class PlaneControl : NetworkBehaviour
     public GameObject spawn;
     public bool keyboardControl;
     public string _ID;
+    public float snapThreshold;
 
     // SIMULATED CONTROLLER (Will be actual controller in VR)
     private float pitchPosition;
@@ -71,9 +72,6 @@ public class PlaneControl : NetworkBehaviour
 
                 if (Input.GetKeyDown(KeyCode.P)) {
                     CmdShoot();
-                    if (!this.isServer) {
-                        ClientShoot(); //spawning for uniquely client-side
-                    }
                 }
             } else {
                 pitchPosition = ShiftTowards(pitchPosition, OVRInput.Get(OVRInput.Axis2D.PrimaryThumbstick, OVRInput.Controller.LTouch).y, controlRate);
@@ -90,9 +88,6 @@ public class PlaneControl : NetworkBehaviour
                 if (OVRInput.Get(OVRInput.Axis1D.PrimaryIndexTrigger, OVRInput.Controller.RTouch) > 0.5 && fireRate == 0) {
                     fireRate = 0.4f;
                     CmdShoot();
-                    if (!this.isServer) {
-                        ClientShoot(); //spawning for uniquely client-side
-                    }
                 }
             }
 
@@ -106,11 +101,11 @@ public class PlaneControl : NetworkBehaviour
             if (updateInterval > 0.11f) // 9 times per second
             {
                 updateInterval = 0;
-                CmdSync(transform.position, transform.rotation);
+                CmdSync(rb.position, rb.rotation);
             }
         } else {
-            transform.position = Vector3.Lerp (transform.position, realPosition, 0.1f);
-            transform.rotation = Quaternion.Lerp (transform.rotation, realRotation, 0.1f);
+            rb.position = Vector3.Lerp (rb.position, realPosition, 0.15f);
+            rb.rotation = Quaternion.Lerp (rb.rotation, realRotation, 0.15f);
         }
     }
 
@@ -145,13 +140,13 @@ public class PlaneControl : NetworkBehaviour
     [Command]
     public void CmdShoot() {
         if (_ID == "Player 1") {
-            GameObject l = Instantiate(blueLaserPrefab, rb.position + (transform.forward * offset), transform.rotation);
+            GameObject l = Instantiate(blueLaserPrefab, realPosition + (transform.forward * offset), realRotation);
             l.GetComponent<Laser>().owner = _ID;
-            NetworkServer.SpawnWithClientAuthority(l, this.gameObject);
+            NetworkServer.SpawnWithClientAuthority(l, GetComponent<NetworkIdentity>().connectionToClient);
         } else {
-            GameObject l = Instantiate(redLaserPrefab, rb.position + (transform.forward * offset), transform.rotation);
+            GameObject l = Instantiate(redLaserPrefab, realPosition + (transform.forward * offset), realRotation);
             l.GetComponent<Laser>().owner = _ID;
-            NetworkServer.SpawnWithClientAuthority(l, this.gameObject);
+            NetworkServer.SpawnWithClientAuthority(l, GetComponent<NetworkIdentity>().connectionToClient);
         }
     }
 
