@@ -14,6 +14,8 @@ ModelImporter:
     2100004: White
     2100006: Color_A
     2100008: Color_B
+    2100010: Light_Paint
+    2100012: Dark_Paint
     2300000: Exterior
     2300002: Interior
     3300000: Exterior
