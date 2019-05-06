@@ -7,6 +7,7 @@ public class PlaneControl : NetworkBehaviour
     private Rigidbody rb;
     public GameObject blueLaserPrefab;
     public GameObject redLaserPrefab;
+    public GameObject thruster;
 
     [SyncVar]
     public float hp;
@@ -56,6 +57,8 @@ public class PlaneControl : NetworkBehaviour
         int playerNum = goArray.Length - 1;
 
         _ID = "Player " + playerNum;
+
+        
     }
     
     void Update() {
