@@ -27,15 +27,16 @@ public class Laser : NetworkBehaviour
             Destroy(this.gameObject);
         }
         RaycastHit hit;
-        if (Physics.Raycast(rb.position, transform.forward, out hit, 1.5f * rb.velocity.magnitude * Time.deltaTime)) {
+        if (Physics.Raycast(rb.position - (transform.forward * 4), transform.forward, 
+                                out hit, rb.velocity.magnitude * Time.fixedDeltaTime)) {
             Transform tr = hit.transform;
             if (tr.tag == "Player") {
                 if (tr.gameObject.GetComponent<PlaneControl>()._ID != owner) {
-                    tr.gameObject.GetComponent<PlaneControl>().CmdPlayerShot(damage);
-                    RpcDestroy(this.gameObject);
+                    tr.gameObject.GetComponent<PlaneControl>().CmdPlayerShot(damage, this.gameObject);
+                    Debug.Log("Damaged " + tr.gameObject.GetComponent<PlaneControl>()._ID);
                 }
             } else {
-                RpcDestroy(this.gameObject);
+                CmdDestroy(this.gameObject);
             }
         }
     }
@@ -44,8 +45,8 @@ public class Laser : NetworkBehaviour
         rb.velocity = transform.forward * laserSpeed;
     }
 
-    [ClientRpc]
-    public void RpcDestroy(GameObject go) {
-        Destroy(go);
+    [Command]
+    public void CmdDestroy(GameObject go) {
+        NetworkServer.Destroy(go);
     }
 }

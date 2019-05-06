@@ -5,7 +5,8 @@ public class PlaneControl : NetworkBehaviour
 {
     public GameObject pilotCamera;
     private Rigidbody rb;
-    public GameObject laserPrefab;
+    public GameObject blueLaserPrefab;
+    public GameObject redLaserPrefab;
 
     [SyncVar]
     public float hp;
@@ -52,7 +53,10 @@ public class PlaneControl : NetworkBehaviour
         fireRate = 0.5f;
         spawn = GameObject.Find("SpawnLocation");
 
-        _ID = "Player " + GetComponent<NetworkIdentity>().netId;
+        GameObject[] goArray = GameObject.FindGameObjectsWithTag("Player");
+        int playerNum = goArray.Length - 1;
+
+        _ID = "Player " + playerNum;
     }
     
     void Update() {
@@ -67,6 +71,9 @@ public class PlaneControl : NetworkBehaviour
 
                 if (Input.GetKeyDown(KeyCode.P)) {
                     CmdShoot();
+                    if (!this.isServer) {
+                        ClientShoot(); //spawning for uniquely client-side
+                    }
                 }
             } else {
                 pitchPosition = ShiftTowards(pitchPosition, OVRInput.Get(OVRInput.Axis2D.PrimaryThumbstick, OVRInput.Controller.LTouch).y, controlRate);
@@ -83,12 +90,16 @@ public class PlaneControl : NetworkBehaviour
                 if (OVRInput.Get(OVRInput.Axis1D.PrimaryIndexTrigger, OVRInput.Controller.RTouch) > 0.5 && fireRate == 0) {
                     fireRate = 0.4f;
                     CmdShoot();
+                    if (!this.isServer) {
+                        ClientShoot(); //spawning for uniquely client-side
+                    }
                 }
             }
 
             if (hp <= 0) {
                 transform.position = spawn.transform.position;
-                hp = 100;
+                transform.rotation = Quaternion.identity;
+                CmdRestoreHealth();
             }
 
             updateInterval += Time.deltaTime;
@@ -106,7 +117,7 @@ public class PlaneControl : NetworkBehaviour
     void FixedUpdate() {
         OVRInput.FixedUpdate();
         if (this.isLocalPlayer) {
-            rb.AddRelativeTorque(new Vector3(pitchRate * pitchPosition, 0, -yawRate * rollPosition));
+            rb.AddRelativeTorque(new Vector3(pitchRate * pitchPosition, yawRate * yawPosition, -rollRate * rollPosition));
             if (throttleInput) {
                 rb.AddRelativeForce(0, 0, throttleCoeff * throttlePosition);
             } else {
@@ -133,19 +144,38 @@ public class PlaneControl : NetworkBehaviour
 
     [Command]
     public void CmdShoot() {
-        GameObject l = Instantiate(laserPrefab, rb.position + (transform.forward * offset), transform.rotation);
-        l.GetComponent<Laser>().owner = _ID;
-        //NetworkServer.Spawn(l);
+        if (_ID == "Player 1") {
+            GameObject l = Instantiate(blueLaserPrefab, rb.position + (transform.forward * offset), transform.rotation);
+            l.GetComponent<Laser>().owner = _ID;
+            NetworkServer.SpawnWithClientAuthority(l, this.gameObject);
+        } else {
+            GameObject l = Instantiate(redLaserPrefab, rb.position + (transform.forward * offset), transform.rotation);
+            l.GetComponent<Laser>().owner = _ID;
+            NetworkServer.SpawnWithClientAuthority(l, this.gameObject);
+        }
     }
 
-    [ClientRpc]
-    public void RpcShoot() {
-        GameObject l = Instantiate(laserPrefab, rb.position + (transform.forward * offset), transform.rotation);
-        l.GetComponent<Laser>().owner = _ID;
+    [Client]
+    public void ClientShoot() {
+        if (_ID == "Player 1") {
+            GameObject l = Instantiate(blueLaserPrefab, rb.position + (transform.forward * offset), transform.rotation);
+            l.GetComponent<Laser>().owner = _ID;
+        } else {
+            GameObject l = Instantiate(redLaserPrefab, rb.position + (transform.forward * offset), transform.rotation);
+            l.GetComponent<Laser>().owner = _ID;
+        }
     }
 
     [Command]
-    public void CmdPlayerShot(float dmg) {
-        hp -= dmg;
+    public void CmdPlayerShot(float dmg, GameObject laser) {
+        if (laser != null) {
+            hp -= dmg;
+        }
+        NetworkServer.Destroy(laser);
+    }
+
+    [Command]
+    public void CmdRestoreHealth() {
+        hp = 100;
     }
 }

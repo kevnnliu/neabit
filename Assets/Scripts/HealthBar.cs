@@ -7,7 +7,7 @@ using UnityEngine.Networking;
 public class HealthBar : NetworkBehaviour
 {
     public Image healthBar;
-    public GameObject pC;
+    public GameObject plane;
 
     // Start is called before the first frame update
     void Start()
@@ -20,7 +20,7 @@ public class HealthBar : NetworkBehaviour
     {
         if (transform.GetComponentInParent<PlaneControl>().isLocalPlayer)
         {
-            healthBar.fillAmount = pC.GetComponent<PlaneControl>().hp / 100;
+            healthBar.fillAmount = plane.GetComponent<PlaneControl>().hp / 100;
         }
     }
 }

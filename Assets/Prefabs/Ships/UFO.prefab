@@ -187,7 +187,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   healthBar: {fileID: 280152426476088177}
-  pC: {fileID: 6917806272866004672}
+  plane: {fileID: 0}
 --- !u!1 &6014595074336235561
 GameObject:
   m_ObjectHideFlags: 0
@@ -244,7 +244,7 @@ Camera:
     width: 1
     height: 1
   near clip plane: 0.3
-  far clip plane: 10000
+  far clip plane: 5000
   field of view: 60
   orthographic: 0
   orthographic size: 5
@@ -284,7 +284,6 @@ GameObject:
   - component: {fileID: 6917806272866004679}
   - component: {fileID: 1561122489770068761}
   - component: {fileID: 8079072682258899610}
-  - component: {fileID: 1499519360298258925}
   m_Layer: 0
   m_Name: UFO
   m_TagString: Player
@@ -321,7 +320,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   pilotCamera: {fileID: 6014595074336235561}
-  laserPrefab: {fileID: 9073130967879404148, guid: da282432c17994ebb812dcef8fce24e7,
+  blueLaserPrefab: {fileID: 9073130967879404148, guid: da282432c17994ebb812dcef8fce24e7,
+    type: 3}
+  redLaserPrefab: {fileID: 9073130967879404148, guid: 79ae3e9de5e77d14cabbc2fec954550a,
     type: 3}
   hp: 100
   throttleCoeff: 200
@@ -329,7 +330,7 @@ MonoBehaviour:
   yawRate: 40
   rollRate: 40
   dragCoeff: 1.01
-  offset: 0
+  offset: 1
   spawn: {fileID: 0}
   keyboardControl: 1
   _ID: 
@@ -396,28 +397,6 @@ MonoBehaviour:
     i15: 0
   m_ServerOnly: 0
   m_LocalPlayerAuthority: 1
---- !u!114 &1499519360298258925
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6917806272866004672}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: -1768714887, guid: dc443db3e92b4983b9738c1131f555cb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_TransformSyncMode: 3
-  m_SendInterval: 0.1
-  m_SyncRotationAxis: 7
-  m_RotationSyncCompression: 0
-  m_SyncSpin: 1
-  m_MovementTheshold: 0.001
-  m_VelocityThreshold: 0.0001
-  m_SnapThreshold: 1
-  m_InterpolateRotation: 1
-  m_InterpolateMovement: 1
 --- !u!1 &6917806273955862765
 GameObject:
   m_ObjectHideFlags: 0
