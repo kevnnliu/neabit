@@ -276,7 +276,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1494997051758285606}
-  - component: {fileID: 6775915516817065561}
   - component: {fileID: 495141426598487466}
   - component: {fileID: 1071132523883764433}
   - component: {fileID: 2034321362624539173}
@@ -303,39 +302,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &6775915516817065561
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2879726329596232008}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 372142912, guid: dc443db3e92b4983b9738c1131f555cb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_SceneId:
-    m_Value: 0
-  m_AssetId:
-    i0: 0
-    i1: 0
-    i2: 0
-    i3: 0
-    i4: 0
-    i5: 0
-    i6: 0
-    i7: 0
-    i8: 0
-    i9: 0
-    i10: 0
-    i11: 0
-    i12: 0
-    i13: 0
-    i14: 0
-    i15: 0
-  m_ServerOnly: 0
-  m_LocalPlayerAuthority: 1
 --- !u!114 &495141426598487466
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -381,15 +347,13 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
---- !u!65 &2034321362624539173
-BoxCollider:
+--- !u!114 &6775915516817065561
+MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2879726329596232008}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 2
   m_Size: {x: 10, y: 3, z: 13}
@@ -644,15 +608,15 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: cd7e18e57cb93864ba56a149b2ff4f40, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 400000, guid: cd7e18e57cb93864ba56a149b2ff4f40, type: 3}
       propertyPath: m_LocalScale.x
       value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: cd7e18e57cb93864ba56a149b2ff4f40, type: 3}
       propertyPath: m_LocalScale.y
-      value: 5
-      objectReference: {fileID: 0}
-    - target: {fileID: 400000, guid: cd7e18e57cb93864ba56a149b2ff4f40, type: 3}
-      propertyPath: m_LocalScale.z
       value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 100000, guid: cd7e18e57cb93864ba56a149b2ff4f40, type: 3}
@@ -661,9 +625,9 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: cd7e18e57cb93864ba56a149b2ff4f40, type: 3}
---- !u!4 &6387333074009692928 stripped
+--- !u!4 &5644922119875494882 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 400000, guid: cd7e18e57cb93864ba56a149b2ff4f40,
     type: 3}
-  m_PrefabInstance: {fileID: 6387333074009817472}
+  m_PrefabInstance: {fileID: 5644922119875369314}
   m_PrefabAsset: {fileID: 0}
