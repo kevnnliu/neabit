@@ -11,6 +11,7 @@ public class PlaneControl : NetworkBehaviour
     public GameObject blueModel;
     public GameObject redModel;
     public AudioSource thrusterSound;
+    public GameObject explosionPrefab;
 
     [SyncVar]
     public float hp;
@@ -109,6 +110,7 @@ public class PlaneControl : NetworkBehaviour
             }
 
             if (hp <= 0) {
+                CmdExplode();
                 transform.position = spawn.transform.position;
                 transform.rotation = Quaternion.identity;
                 CmdRestoreHealth();
@@ -161,6 +163,12 @@ public class PlaneControl : NetworkBehaviour
     void CmdSync(Vector3 position, Quaternion rotation) {
         realPosition = position;
         realRotation = rotation;
+    }
+
+    [Command]
+    public void CmdExplode() {
+        GameObject e = Instantiate(explosionPrefab, transform.position, transform.rotation);
+        NetworkServer.SpawnWithClientAuthority(e, GetComponent<NetworkIdentity>().connectionToClient);
     }
 
     [Command]
