@@ -117,10 +117,13 @@ public class PlaneControl : NetworkBehaviour
     void FixedUpdate() {
         OVRInput.FixedUpdate();
         if (this.isLocalPlayer) {
+            var em = GetComponentInChildren<ParticleSystem>().emission;
             rb.AddRelativeTorque(new Vector3(pitchRate * pitchPosition, yawRate * yawPosition, -rollRate * rollPosition));
             if (throttleInput) {
                 rb.AddRelativeForce(0, 0, throttleCoeff * throttlePosition);
+                em.enabled = true;
             } else {
+                em.enabled = false;
                 if (rb.velocity.magnitude > 0) {
                     rb.AddRelativeForce(0.2f * -rb.velocity);
                 }
