@@ -8,6 +8,9 @@ public class PlaneControl : NetworkBehaviour
     public GameObject blueLaserPrefab;
     public GameObject redLaserPrefab;
     public GameObject thruster;
+    public GameObject blueModel;
+    public GameObject redModel;
+    public AudioSource thrusterSound;
 
     [SyncVar]
     public float hp;
@@ -58,7 +61,13 @@ public class PlaneControl : NetworkBehaviour
 
         _ID = "Player " + playerNum;
 
-        
+        if (_ID == "Player 2") {
+            blueModel.SetActive(false);
+            redModel.SetActive(true);
+            thruster.GetComponent<ParticleSystem>().startColor = new Color(1, 0, 0, 1);
+        } else {
+            blueModel.SetActive(true);
+        }
     }
     
     void Update() {
@@ -125,8 +134,14 @@ public class PlaneControl : NetworkBehaviour
             if (throttleInput) {
                 rb.AddRelativeForce(0, 0, throttleCoeff * throttlePosition);
                 em.enabled = true;
+                if (!thrusterSound.isPlaying) {
+                    thrusterSound.Play();
+                }
             } else {
                 em.enabled = false;
+                if (thrusterSound.isPlaying) {
+                    thrusterSound.Stop();
+                }
                 if (rb.velocity.magnitude > 0) {
                     rb.AddRelativeForce(0.2f * -rb.velocity);
                 }
@@ -152,19 +167,19 @@ public class PlaneControl : NetworkBehaviour
     public void CmdShoot() {
         if (_ID == "Player 1") {
             GameObject l1 = Instantiate(blueLaserPrefab, transform.position
-                             + (transform.forward * 10) + (transform.right * 3) - (transform.up * 0.5f), transform.rotation);
+                             + (transform.forward * 8) + (transform.right * 3) + (transform.up * 0.3f), transform.rotation);
             l1.GetComponent<Laser>().owner = _ID;
             GameObject l2 = Instantiate(blueLaserPrefab, transform.position
-                             + (transform.forward * 10) - (transform.right * 3) - (transform.up * 0.5f), transform.rotation);
+                             + (transform.forward * 8) - (transform.right * 3) + (transform.up * 0.3f), transform.rotation);
             l2.GetComponent<Laser>().owner = _ID;
             NetworkServer.SpawnWithClientAuthority(l1, GetComponent<NetworkIdentity>().connectionToClient);
             NetworkServer.SpawnWithClientAuthority(l2, GetComponent<NetworkIdentity>().connectionToClient);
         } else {
             GameObject l1 = Instantiate(redLaserPrefab, transform.position
-                             + (transform.forward * 10) + (transform.right * 3) - (transform.up * 0.5f), transform.rotation);
+                             + (transform.forward * 8) + (transform.right * 3) + (transform.up * 0.3f), transform.rotation);
             l1.GetComponent<Laser>().owner = _ID;
             GameObject l2 = Instantiate(redLaserPrefab, transform.position
-                             + (transform.forward * 10) - (transform.right * 3) - (transform.up * 0.5f), transform.rotation);
+                             + (transform.forward * 8) - (transform.right * 3) + (transform.up * 0.3f), transform.rotation);
             l2.GetComponent<Laser>().owner = _ID;
             NetworkServer.SpawnWithClientAuthority(l1, GetComponent<NetworkIdentity>().connectionToClient);
             NetworkServer.SpawnWithClientAuthority(l2, GetComponent<NetworkIdentity>().connectionToClient);
