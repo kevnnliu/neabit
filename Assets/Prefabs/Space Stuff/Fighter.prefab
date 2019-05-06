@@ -209,7 +209,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1778030232272072210}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 3, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 6850356507071310236}
@@ -278,7 +278,8 @@ GameObject:
   - component: {fileID: 1494997051758285606}
   - component: {fileID: 495141426598487466}
   - component: {fileID: 1071132523883764433}
-  - component: {fileID: 2034321362624539173}
+  - component: {fileID: 5741389025926276896}
+  - component: {fileID: 5589876552009400361}
   m_Layer: 0
   m_Name: Fighter
   m_TagString: Player
@@ -320,16 +321,14 @@ MonoBehaviour:
   redLaserPrefab: {fileID: 9073130967879404148, guid: 79ae3e9de5e77d14cabbc2fec954550a,
     type: 3}
   hp: 100
-  throttleCoeff: 200
-  pitchRate: 60
-  yawRate: 40
-  rollRate: 60
-  dragCoeff: 1.01
-  offset: 1
+  throttleCoeff: 250
+  pitchRate: 80
+  yawRate: 30
+  rollRate: 30
+  dragCoeff: 1.05
   spawn: {fileID: 0}
   keyboardControl: 1
   _ID: 
-  snapThreshold: 5
   controlRate: 2
 --- !u!54 &1071132523883764433
 Rigidbody:
@@ -341,13 +340,13 @@ Rigidbody:
   serializedVersion: 2
   m_Mass: 1
   m_Drag: 1
-  m_AngularDrag: 5
+  m_AngularDrag: 1.8
   m_UseGravity: 0
   m_IsKinematic: 0
   m_Interpolate: 0
   m_Constraints: 0
-  m_CollisionDetection: 0
---- !u!114 &6775915516817065561
+  m_CollisionDetection: 1
+--- !u!114 &5741389025926276896
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -355,9 +354,44 @@ MonoBehaviour:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2879726329596232008}
   m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 372142912, guid: dc443db3e92b4983b9738c1131f555cb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_SceneId:
+    m_Value: 0
+  m_AssetId:
+    i0: 0
+    i1: 0
+    i2: 0
+    i3: 0
+    i4: 0
+    i5: 0
+    i6: 0
+    i7: 0
+    i8: 0
+    i9: 0
+    i10: 0
+    i11: 0
+    i12: 0
+    i13: 0
+    i14: 0
+    i15: 0
+  m_ServerOnly: 0
+  m_LocalPlayerAuthority: 1
+--- !u!65 &5589876552009400361
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2879726329596232008}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
   serializedVersion: 2
-  m_Size: {x: 10, y: 3, z: 13}
-  m_Center: {x: 0, y: 0.1, z: 1.35}
+  m_Size: {x: 7, y: 2, z: 18}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &4970145799067280293
 GameObject:
   m_ObjectHideFlags: 0
@@ -625,9 +659,9 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: cd7e18e57cb93864ba56a149b2ff4f40, type: 3}
---- !u!4 &5644922119875494882 stripped
+--- !u!4 &6387333074009692928 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 400000, guid: cd7e18e57cb93864ba56a149b2ff4f40,
     type: 3}
-  m_PrefabInstance: {fileID: 5644922119875369314}
+  m_PrefabInstance: {fileID: 6387333074009817472}
   m_PrefabAsset: {fileID: 0}
