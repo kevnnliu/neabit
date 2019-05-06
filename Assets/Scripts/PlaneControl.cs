@@ -92,10 +92,10 @@ public class PlaneControl : NetworkBehaviour
                     CmdShoot();
                 }
             } else {
-                pitchPosition = ShiftTowards(pitchPosition, OVRInput.Get(OVRInput.Axis2D.PrimaryThumbstick, OVRInput.Controller.LTouch).y, controlRate);
-                rollPosition = ShiftTowards(rollPosition, OVRInput.Get(OVRInput.Axis2D.PrimaryThumbstick, OVRInput.Controller.LTouch).x, controlRate);
-                yawPosition = ShiftTowards(yawPosition, OVRInput.Get(OVRInput.Axis2D.PrimaryThumbstick, OVRInput.Controller.RTouch).x, controlRate);
-                throttleInput = OVRInput.Get(OVRInput.Axis1D.PrimaryHandTrigger, OVRInput.Controller.RTouch) > 0.5;
+                pitchPosition = ShiftTowards(pitchPosition, OVRInput.Get(OVRInput.Axis2D.PrimaryThumbstick).y, controlRate);
+                rollPosition = ShiftTowards(rollPosition, OVRInput.Get(OVRInput.Axis2D.PrimaryThumbstick).x, controlRate);
+                yawPosition = ShiftTowards(yawPosition, OVRInput.Get(OVRInput.Axis2D.SecondaryThumbstick).x, controlRate);
+                throttleInput = OVRInput.Get(OVRInput.Axis1D.PrimaryHandTrigger) > 0.5;
 
                 if (fireRate > 0) {
                     fireRate -= Time.deltaTime;
@@ -103,7 +103,7 @@ public class PlaneControl : NetworkBehaviour
                     fireRate = 0;
                 }
 
-                if (OVRInput.Get(OVRInput.Axis1D.PrimaryIndexTrigger, OVRInput.Controller.RTouch) > 0.5 && fireRate == 0) {
+                if (OVRInput.Get(OVRInput.Axis1D.SecondaryIndexTrigger) > 0.5 && fireRate == 0) {
                     fireRate = 0.25f;
                     CmdShoot();
                 }
