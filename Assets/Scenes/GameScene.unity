@@ -291,7 +291,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 594307745}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -22}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 1401129674}
@@ -373,9 +373,9 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: 81c094e183b66e4469a97f34eb5538dc, type: 3}
+  m_audioClip: {fileID: 8300000, guid: 8d84dd0f3c25b2e4c91f6a21a0113170, type: 3}
   m_PlayOnAwake: 1
-  m_Volume: 1
+  m_Volume: 0.3
   m_Pitch: 1
   Loop: 1
   Mute: 0
@@ -571,6 +571,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Space Station (2)
       objectReference: {fileID: 0}
+    - target: {fileID: 3587757771864426726, guid: 8f12054c5e1a2428aa9fcca0bc7c345e,
+        type: 3}
+      propertyPath: m_TagString
+      value: Structure
+      objectReference: {fileID: 0}
     - target: {fileID: 3587757771864426727, guid: 8f12054c5e1a2428aa9fcca0bc7c345e,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -654,6 +659,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Space Station (1)
+      objectReference: {fileID: 0}
+    - target: {fileID: 3587757771864426726, guid: 8f12054c5e1a2428aa9fcca0bc7c345e,
+        type: 3}
+      propertyPath: m_TagString
+      value: Structure
       objectReference: {fileID: 0}
     - target: {fileID: 3587757771864426727, guid: 8f12054c5e1a2428aa9fcca0bc7c345e,
         type: 3}
@@ -850,6 +860,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Space Station
+      objectReference: {fileID: 0}
+    - target: {fileID: 3587757771864426726, guid: 8f12054c5e1a2428aa9fcca0bc7c345e,
+        type: 3}
+      propertyPath: m_TagString
+      value: Structure
       objectReference: {fileID: 0}
     - target: {fileID: 3587757771864426727, guid: 8f12054c5e1a2428aa9fcca0bc7c345e,
         type: 3}

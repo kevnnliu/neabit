@@ -7,6 +7,7 @@ public class Laser : NetworkBehaviour
 {
     public float damage;
     public float laserSpeed;
+    [SyncVar]
     public string owner;
     
     private Rigidbody rb;

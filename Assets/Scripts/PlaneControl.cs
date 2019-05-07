@@ -110,7 +110,8 @@ public class PlaneControl : NetworkBehaviour
 
                     if (Input.GetKey(KeyCode.P) && fireRate == 0) {
                         fireRate = 0.1f;
-                        CmdShoot(gunFireSide);
+                        CmdShoot(gunFireSide, transform.position
+                             + (transform.forward * 8) + (gunFireSide * (transform.right * 3)) + (transform.up * 0.3f), transform.rotation);
                         gunFireSide *= -1;
                     }
                 } else {
@@ -127,7 +128,8 @@ public class PlaneControl : NetworkBehaviour
 
                     if (OVRInput.Get(OVRInput.Axis1D.SecondaryIndexTrigger) > 0.5 && fireRate == 0) {
                         fireRate = 0.1f;
-                        CmdShoot(gunFireSide);
+                        CmdShoot(gunFireSide, transform.position
+                             + (transform.forward * 8) + (gunFireSide * (transform.right * 3)) + (transform.up * 0.3f), transform.rotation);
                         gunFireSide *= -1;
                     }
                 }
@@ -147,8 +149,8 @@ public class PlaneControl : NetworkBehaviour
                 CmdUpdateParticles(isThrusting);
             }
         } else {
-            transform.position = Vector3.Lerp (transform.position, realPosition, 0.2f);
-            transform.rotation = Quaternion.Lerp (transform.rotation, realRotation, 0.2f);
+            transform.position = Vector3.Lerp (transform.position, realPosition, 0.1f);
+            transform.rotation = Quaternion.Lerp (transform.rotation, realRotation, 0.1f);
             var em = thruster.GetComponent<ParticleSystem>().emission;
             em.enabled = isThrusting;
         }
@@ -185,6 +187,18 @@ public class PlaneControl : NetworkBehaviour
             }
             if (rb.velocity.magnitude > 0) {
                 rb.AddRelativeForce(0.5f * -rb.velocity);
+            }
+        }
+    }
+
+    private void OnCollisionEnter(Collision col) {
+        GameObject other = col.transform.root.gameObject;
+        if (other.tag == "Structure") {
+            CmdExplode();
+        } else if (other.tag == "Player") {
+            CmdExplode();
+            if (!other.GetComponent<PlaneControl>().isDead) {
+                other.GetComponent<PlaneControl>().CmdExplode();
             }
         }
     }
@@ -248,10 +262,9 @@ public class PlaneControl : NetworkBehaviour
     }
 
     [Command]
-    void CmdShoot(float gunSide) {
+    void CmdShoot(float gunSide, Vector3 position, Quaternion rotation) {
         if (_ID == "Player 1") {
-            GameObject l1 = Instantiate(blueLaserPrefab, transform.position
-                             + (transform.forward * 8) + (gunSide * (transform.right * 3)) + (transform.up * 0.3f), realRotation);
+            GameObject l1 = Instantiate(blueLaserPrefab, position, rotation);
             l1.GetComponent<Laser>().owner = _ID;
             if (gunSide > 0) {
                 rightLaser.Play();
@@ -260,8 +273,7 @@ public class PlaneControl : NetworkBehaviour
             }
             NetworkServer.SpawnWithClientAuthority(l1, GetComponent<NetworkIdentity>().connectionToClient);
         } else {
-            GameObject l1 = Instantiate(redLaserPrefab, transform.position
-                             + (transform.forward * 8) + (gunSide * (transform.right * 3)) + (transform.up * 0.3f), realRotation);
+            GameObject l1 = Instantiate(redLaserPrefab, position, rotation);
             l1.GetComponent<Laser>().owner = _ID;
             if (gunSide > 0) {
                 rightLaser.Play();

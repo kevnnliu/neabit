@@ -30,7 +30,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   damage: 10
   laserSpeed: 1000
-  owner: Player 1
+  owner: 
 --- !u!114 &515761297
 MonoBehaviour:
   m_ObjectHideFlags: 0

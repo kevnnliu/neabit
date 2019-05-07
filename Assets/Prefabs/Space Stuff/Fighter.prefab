@@ -4900,7 +4900,7 @@ AudioSource:
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 8300000, guid: 8de38817279aa4762b4765011dc21dca, type: 3}
   m_PlayOnAwake: 0
-  m_Volume: 0.5
+  m_Volume: 0.2
   m_Pitch: 0.9
   Loop: 1
   Mute: 0
@@ -5338,7 +5338,7 @@ AudioSource:
     m_Curve:
     - serializedVersion: 3
       time: 0
-      value: 0
+      value: 0.5
       inSlope: 0
       outSlope: 0
       tangentMode: 0
@@ -5526,14 +5526,15 @@ MonoBehaviour:
   leftLaser: {fileID: 224880032051098617}
   rightLaser: {fileID: 7257496127838227587}
   keyboardControl: 1
-  _ID: 
   set_ID: 
   hp: 100
   isDead: 0
+  _ID: 
+  isThrusting: 0
   throttleCoeff: 300
   pitchRate: 50
   yawRate: 30
-  rollRate: 20
+  rollRate: 30
   controlRate: 2
 --- !u!54 &1071132523883764433
 Rigidbody:
@@ -5857,7 +5858,7 @@ AudioSource:
     m_Curve:
     - serializedVersion: 3
       time: 0
-      value: 0
+      value: 0.5
       inSlope: 0
       outSlope: 0
       tangentMode: 0
