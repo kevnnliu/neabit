@@ -603,6 +603,10 @@ PlayerSettings:
       daydreamIconForeground: {fileID: 0}
       daydreamIconBackground: {fileID: 0}
   cloudServicesEnabled:
+    Build: 0
+    Collab: 0
+    ErrorHub: 0
+    Hub: 0
     UNet: 1
   luminIcon:
     m_Name: 
@@ -623,9 +627,9 @@ PlayerSettings:
   facebookXfbml: 0
   facebookFrictionlessRequests: 1
   apiCompatibilityLevel: 6
-  cloudProjectId: fa5b9a1e-47a4-4fd8-8ef2-97da1112bb4b
+  cloudProjectId: bad65572-b001-43cb-b5d9-0c468ded741b
   framebufferDepthMemorylessMode: 0
-  projectName: Near Orbit (1)
+  projectName: neabit
   organizationId: crazychicken41-gmail-com
   cloudEnabled: 0
   enableNativePlatformBackendsForNewInputSystem: 0
