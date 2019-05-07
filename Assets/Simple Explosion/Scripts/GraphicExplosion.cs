@@ -11,10 +11,13 @@ public class GraphicExplosion : NetworkBehaviour {
 
 	void Start() {
 		awakeTime = 0;
+		if (isClient) {
+			GetComponent<AudioSource>().mute = true;
+		}
 	}
 	void Update () {
 		awakeTime += Time.deltaTime;
-		if (awakeTime >= 7) {
+		if (awakeTime >= 8) {
 			CmdDestroy(this.gameObject);
 		}
 		ramptime+=Time.deltaTime*2;

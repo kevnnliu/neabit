@@ -12,19 +12,25 @@ public class PlaneControl : NetworkBehaviour
     public GameObject redModel;
     public AudioSource thrusterSound;
     public GameObject explosionPrefab;
+    public AudioSource leftLaser;
+    public AudioSource rightLaser;
+    public bool keyboardControl;
+    public string set_ID;
 
     [SyncVar]
     public float hp;
+    [SyncVar]
+    public bool isDead;
+    [SyncVar]
+    public string _ID;
+    [SyncVar]
+    public bool isThrusting;
 
     // PHYSICS values
     public float throttleCoeff;
     public float pitchRate;
     public float yawRate;
     public float rollRate;
-    public float dragCoeff;
-    public GameObject spawn;
-    public bool keyboardControl;
-    public string _ID;
 
     // SIMULATED CONTROLLER (Will be actual controller in VR)
     private float pitchPosition;
@@ -33,6 +39,8 @@ public class PlaneControl : NetworkBehaviour
     private float throttlePosition;
     private bool throttleInput;
     private float fireRate;
+    private float gunFireSide = -1;
+    private float respawnTime;
 
     // How much keyboard inputs affect controller (will not be necessary in VR)
     public float controlRate = 2;
@@ -55,7 +63,8 @@ public class PlaneControl : NetworkBehaviour
         throttlePosition = 1;
         throttleInput = false;
         fireRate = 0.5f;
-        spawn = GameObject.Find("SpawnLocation");
+        isDead = false;
+        respawnTime = 0;
 
         GameObject[] goArray = GameObject.FindGameObjectsWithTag("Player");
         int playerNum = goArray.Length - 1;
@@ -75,78 +84,107 @@ public class PlaneControl : NetworkBehaviour
         if (this.isLocalPlayer) {
             OVRInput.Update();
 
-            if (keyboardControl) {
-                pitchPosition = ShiftTowards(pitchPosition, Input.GetAxis("Pitch"), controlRate);
-                rollPosition = ShiftTowards(rollPosition, Input.GetAxis("Roll"), controlRate);
-                yawPosition = ShiftTowards(yawPosition, Input.GetAxis("Yaw"), controlRate);
-                throttleInput = Input.GetKey(KeyCode.Space);
+            if (_ID != "Player 1" && _ID != "Player 2") {
+                CmdUpdatePlayerID();
+            }
 
-                if (fireRate > 0) {
-                    fireRate -= Time.deltaTime;
-                } else {
-                    fireRate = 0;
-                }
-
-                if (Input.GetKey(KeyCode.P) && fireRate == 0) {
-                    fireRate = 0.25f;
-                    CmdShoot();
-                }
-            } else {
-                pitchPosition = ShiftTowards(pitchPosition, OVRInput.Get(OVRInput.Axis2D.PrimaryThumbstick).y, controlRate);
-                rollPosition = ShiftTowards(rollPosition, OVRInput.Get(OVRInput.Axis2D.PrimaryThumbstick).x, controlRate);
-                yawPosition = ShiftTowards(yawPosition, OVRInput.Get(OVRInput.Axis2D.SecondaryThumbstick).x, controlRate);
-                throttleInput = OVRInput.Get(OVRInput.Axis1D.PrimaryHandTrigger) > 0.5;
-
-                if (fireRate > 0) {
-                    fireRate -= Time.deltaTime;
-                } else {
-                    fireRate = 0;
-                }
-
-                if (OVRInput.Get(OVRInput.Axis1D.SecondaryIndexTrigger) > 0.5 && fireRate == 0) {
-                    fireRate = 0.25f;
-                    CmdShoot();
+            if (isDead) {
+                respawnTime += Time.deltaTime;
+                if (respawnTime >= 5) {
+                    CmdRespawn();
                 }
             }
 
-            if (hp <= 0) {
-                CmdExplode();
-                transform.position = spawn.transform.position;
-                transform.rotation = Quaternion.identity;
-                CmdRestoreHealth();
+            if (!isDead) {
+                    if (keyboardControl) {
+                    pitchPosition = ShiftTowards(pitchPosition, Input.GetAxis("Pitch"), controlRate);
+                    rollPosition = ShiftTowards(rollPosition, Input.GetAxis("Roll"), controlRate);
+                    yawPosition = ShiftTowards(yawPosition, Input.GetAxis("Yaw"), controlRate);
+                    throttleInput = Input.GetKey(KeyCode.Space);
+
+                    if (fireRate > 0) {
+                        fireRate -= Time.deltaTime;
+                    } else {
+                        fireRate = 0;
+                    }
+
+                    if (Input.GetKey(KeyCode.P) && fireRate == 0) {
+                        fireRate = 0.1f;
+                        CmdShoot(gunFireSide);
+                        gunFireSide *= -1;
+                    }
+                } else {
+                    pitchPosition = ShiftTowards(pitchPosition, OVRInput.Get(OVRInput.Axis2D.PrimaryThumbstick).y, controlRate);
+                    rollPosition = ShiftTowards(rollPosition, OVRInput.Get(OVRInput.Axis2D.PrimaryThumbstick).x, controlRate);
+                    yawPosition = ShiftTowards(yawPosition, OVRInput.Get(OVRInput.Axis2D.SecondaryThumbstick).x, controlRate);
+                    throttleInput = OVRInput.Get(OVRInput.Axis1D.PrimaryHandTrigger) > 0.5;
+
+                    if (fireRate > 0) {
+                        fireRate -= Time.deltaTime;
+                    } else {
+                        fireRate = 0;
+                    }
+
+                    if (OVRInput.Get(OVRInput.Axis1D.SecondaryIndexTrigger) > 0.5 && fireRate == 0) {
+                        fireRate = 0.1f;
+                        CmdShoot(gunFireSide);
+                        gunFireSide *= -1;
+                    }
+                }
+            }
+
+            if (hp <= 0 || Input.GetKeyDown(KeyCode.R)) {
+                if (!isDead) {
+                    CmdExplode();
+                }
             }
 
             updateInterval += Time.deltaTime;
-            if (updateInterval > 0.11f) // 9 times per second
+            if (updateInterval > 0.05f) // 20 times per second
             {
                 updateInterval = 0;
                 CmdSync(rb.position, rb.rotation);
+                CmdUpdateParticles(isThrusting);
             }
         } else {
-            transform.position = Vector3.Lerp (transform.position, realPosition, 0.15f);
-            transform.rotation = Quaternion.Lerp (transform.rotation, realRotation, 0.15f);
+            transform.position = Vector3.Lerp (transform.position, realPosition, 0.2f);
+            transform.rotation = Quaternion.Lerp (transform.rotation, realRotation, 0.2f);
+            var em = thruster.GetComponent<ParticleSystem>().emission;
+            em.enabled = isThrusting;
         }
     }
 
     void FixedUpdate() {
-        OVRInput.FixedUpdate();
         if (this.isLocalPlayer) {
-            var em = GetComponentInChildren<ParticleSystem>().emission;
-            rb.AddRelativeTorque(new Vector3(pitchRate * pitchPosition, yawRate * yawPosition, -rollRate * rollPosition));
-            if (throttleInput) {
-                rb.AddRelativeForce(0, 0, throttleCoeff * throttlePosition);
-                em.enabled = true;
-                if (!thrusterSound.isPlaying) {
-                    thrusterSound.Play();
+            OVRInput.FixedUpdate();
+            var em = thruster.GetComponent<ParticleSystem>().emission;
+            em.enabled = isThrusting;
+
+            if (!isDead) {
+                rb.AddRelativeTorque(new Vector3(pitchRate * pitchPosition, yawRate * yawPosition, -rollRate * rollPosition));
+                if (throttleInput) {
+                    rb.AddRelativeForce(0, 0, throttleCoeff * throttlePosition);
+                    if (!thrusterSound.isPlaying) {
+                        thrusterSound.Play();
+                        isThrusting = true;
+                    }
+                } else {
+                    if (thrusterSound.isPlaying) {
+                        thrusterSound.Stop();
+                        isThrusting = false;
+                    }
+                    if (rb.velocity.magnitude > 0) {
+                        rb.AddRelativeForce(0.15f * -rb.velocity);
+                    }
                 }
-            } else {
-                em.enabled = false;
-                if (thrusterSound.isPlaying) {
-                    thrusterSound.Stop();
-                }
-                if (rb.velocity.magnitude > 0) {
-                    rb.AddRelativeForce(0.2f * -rb.velocity);
-                }
+            }
+        } else if (this.isLocalPlayer) {
+            OVRInput.FixedUpdate();
+            if (thrusterSound.isPlaying) {
+                thrusterSound.Stop();
+            }
+            if (rb.velocity.magnitude > 0) {
+                rb.AddRelativeForce(0.5f * -rb.velocity);
             }
         }
     }
@@ -159,6 +197,13 @@ public class PlaneControl : NetworkBehaviour
         return Mathf.Max(value - Mathf.Abs(delta) * Time.deltaTime, target);
     }
 
+    [ClientRpc]
+    void RpcDisableModel() {
+        blueModel.SetActive(false);
+        redModel.SetActive(false);
+        GetComponent<BoxCollider>().enabled = false;
+    }
+
     [Command]
     void CmdSync(Vector3 position, Quaternion rotation) {
         realPosition = position;
@@ -166,31 +211,64 @@ public class PlaneControl : NetworkBehaviour
     }
 
     [Command]
-    public void CmdExplode() {
-        GameObject e = Instantiate(explosionPrefab, transform.position, transform.rotation);
-        NetworkServer.SpawnWithClientAuthority(e, GetComponent<NetworkIdentity>().connectionToClient);
+    void CmdUpdateParticles(bool thrust) {
+        isThrusting = thrust;
     }
 
     [Command]
-    public void CmdShoot() {
+    void CmdUpdatePlayerID() {
+        _ID = set_ID;
+        if (_ID == "Player 2") {
+            blueModel.SetActive(false);
+            redModel.SetActive(true);
+            thruster.GetComponent<ParticleSystem>().startColor = new Color(1, 0, 0, 1);
+        } else {
+            blueModel.SetActive(true);
+        }
+    }
+
+    [Command]
+    void CmdExplode() {
+        GameObject e = Instantiate(explosionPrefab, transform.position, transform.rotation);
+        NetworkServer.SpawnWithClientAuthority(e, GetComponent<NetworkIdentity>().connectionToClient);
+        isDead = true;
+        hp = 0;
+        thruster.SetActive(false);
+        RpcDisableModel();
+    }
+
+    [Command]
+    void CmdRespawn(){
+        CmdRestoreHealth();
+        var spawn = NetworkManager.singleton.GetStartPosition();
+        var newPlayer = (GameObject) Instantiate(NetworkManager.singleton.playerPrefab, spawn.position, spawn.rotation);
+        newPlayer.GetComponent<PlaneControl>().set_ID = _ID;
+        NetworkServer.Destroy(this.gameObject);
+        NetworkServer.ReplacePlayerForConnection(this.connectionToClient, newPlayer, this.playerControllerId);
+    }
+
+    [Command]
+    void CmdShoot(float gunSide) {
         if (_ID == "Player 1") {
             GameObject l1 = Instantiate(blueLaserPrefab, transform.position
-                             + (transform.forward * 8) + (transform.right * 3) + (transform.up * 0.3f), transform.rotation);
+                             + (transform.forward * 8) + (gunSide * (transform.right * 3)) + (transform.up * 0.3f), realRotation);
             l1.GetComponent<Laser>().owner = _ID;
-            GameObject l2 = Instantiate(blueLaserPrefab, transform.position
-                             + (transform.forward * 8) - (transform.right * 3) + (transform.up * 0.3f), transform.rotation);
-            l2.GetComponent<Laser>().owner = _ID;
+            if (gunSide > 0) {
+                rightLaser.Play();
+            } else {
+                leftLaser.Play();
+            }
             NetworkServer.SpawnWithClientAuthority(l1, GetComponent<NetworkIdentity>().connectionToClient);
-            NetworkServer.SpawnWithClientAuthority(l2, GetComponent<NetworkIdentity>().connectionToClient);
         } else {
             GameObject l1 = Instantiate(redLaserPrefab, transform.position
-                             + (transform.forward * 8) + (transform.right * 3) + (transform.up * 0.3f), transform.rotation);
+                             + (transform.forward * 8) + (gunSide * (transform.right * 3)) + (transform.up * 0.3f), realRotation);
             l1.GetComponent<Laser>().owner = _ID;
-            GameObject l2 = Instantiate(redLaserPrefab, transform.position
-                             + (transform.forward * 8) - (transform.right * 3) + (transform.up * 0.3f), transform.rotation);
-            l2.GetComponent<Laser>().owner = _ID;
+            if (gunSide > 0) {
+                rightLaser.Play();
+            } else {
+                leftLaser.Play();
+            }
             NetworkServer.SpawnWithClientAuthority(l1, GetComponent<NetworkIdentity>().connectionToClient);
-            NetworkServer.SpawnWithClientAuthority(l2, GetComponent<NetworkIdentity>().connectionToClient);
         }
     }
 
@@ -203,7 +281,7 @@ public class PlaneControl : NetworkBehaviour
     }
 
     [Command]
-    public void CmdRestoreHealth() {
+    void CmdRestoreHealth() {
         hp = 100;
     }
 }
