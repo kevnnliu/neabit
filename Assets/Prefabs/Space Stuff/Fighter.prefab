@@ -6372,7 +6372,8 @@ MonoBehaviour:
   set_ID: 
   serverLag: 5
   warning: {fileID: 4954054842182046188}
-  reticleNear: {fileID: 0}
+  reticleNear: {fileID: 4318754612409602808}
+  interior: {fileID: 981665063469155219}
   hp: 100
   isDead: 0
   _ID: 

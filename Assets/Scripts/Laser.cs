@@ -7,6 +7,8 @@ public class Laser : NetworkBehaviour
 {
     public float damage;
     public float laserSpeed;
+    public bool tracking = false;
+    public GameObject trackedTarget;
     
     [SyncVar]
     public string owner;
@@ -44,7 +46,12 @@ public class Laser : NetworkBehaviour
     }
 
     void FixedUpdate() {
-        rb.velocity = transform.forward * laserSpeed;
+        if (tracking) {
+            rb.velocity = Vector3.Normalize(trackedTarget.transform.position - transform.position)
+                             * laserSpeed;
+        } else {
+            rb.velocity = transform.forward * laserSpeed;
+        }
     }
 
     [Command]

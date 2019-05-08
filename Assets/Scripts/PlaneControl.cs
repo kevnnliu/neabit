@@ -19,6 +19,7 @@ public class PlaneControl : NetworkBehaviour
     public float serverLag;
     public GameObject warning;
     public GameObject reticleNear;
+    public GameObject interior;
 
     [SyncVar]
     public float hp;
@@ -46,6 +47,7 @@ public class PlaneControl : NetworkBehaviour
     private float respawnTime;
     private float outOfBoundsTime;
     private bool inSights;
+    private GameObject trackingTarget;
 
     // How much keyboard inputs affect controller (will not be necessary in VR)
     public float controlRate = 2;
@@ -84,6 +86,8 @@ public class PlaneControl : NetworkBehaviour
         } else {
             blueModel.SetActive(true);
         }
+
+        trackingCalculation();
     }
     
     void Update() {
@@ -123,7 +127,7 @@ public class PlaneControl : NetworkBehaviour
                     }
 
                     if (Input.GetKey(KeyCode.P) && fireRate == 0) {
-                        shoot();
+                        shoot(0.03f, false, trackingTarget);
                         gunFireSide *= -1;
                     }
                 } else {
@@ -131,6 +135,8 @@ public class PlaneControl : NetworkBehaviour
                     rollPosition = ShiftTowards(rollPosition, OVRInput.Get(OVRInput.Axis2D.PrimaryThumbstick).x, controlRate);
                     yawPosition = ShiftTowards(yawPosition, OVRInput.Get(OVRInput.Axis2D.SecondaryThumbstick).x, controlRate);
                     throttleInput = OVRInput.Get(OVRInput.Axis1D.PrimaryHandTrigger) > 0.5;
+                    bool tracking = OVRInput.Get(OVRInput.Axis1D.SecondaryHandTrigger) > 0.5;
+                    bool shooting = OVRInput.Get(OVRInput.Axis1D.SecondaryIndexTrigger) > 0.5;
 
                     if (OVRInput.Get(OVRInput.Button.PrimaryThumbstick)) {
                         pilotCamera.transform.localPosition += 0.1f * Vector3.up * Time.deltaTime;
@@ -145,8 +151,8 @@ public class PlaneControl : NetworkBehaviour
                         fireRate = 0;
                     }
 
-                    if (OVRInput.Get(OVRInput.Axis1D.SecondaryIndexTrigger) > 0.5 && fireRate == 0) {
-                        shoot();
+                    if (shooting && fireRate == 0) {
+                        shoot(0.03f, inSights && tracking, trackingTarget);
                         gunFireSide *= -1;
                     }
                 }
@@ -197,23 +203,7 @@ public class PlaneControl : NetworkBehaviour
                     }
                 }
 
-                // is target in reticles?
-                GameObject[] playerArray = GameObject.FindGameObjectsWithTag("Player");
-                if (playerArray.Length > 1) {
-                    foreach (GameObject p in playerArray) {
-                        if (p.GetComponent<PlaneControl>()._ID != _ID) {
-                            RaycastHit hit;
-                            if (Physics.Raycast(reticleNear.transform.position
-                                , p.transform.position - reticleNear.transform.position, out hit, 3f)) {
-                                if (hit.transform.gameObject.name == "Reticle Far") {
-                                    inSights = true;
-                                    break;
-                                }
-                            }
-                        }
-                        inSights = false;
-                    }
-                }
+                trackingCalculation();
             }
         } else if (this.isLocalPlayer) {
             OVRInput.FixedUpdate();
@@ -238,6 +228,27 @@ public class PlaneControl : NetworkBehaviour
         }
     }
 
+    void trackingCalculation() {
+        // is target in reticles?
+        GameObject[] playerArray = GameObject.FindGameObjectsWithTag("Player");
+        if (playerArray.Length > 1) {
+            foreach (GameObject p in playerArray) {
+                if (p.GetComponent<PlaneControl>()._ID != _ID) {
+                    trackingTarget = p.gameObject;
+                    RaycastHit hit;
+                    if (Physics.Raycast(reticleNear.transform.position
+                        , p.transform.position - reticleNear.transform.position, out hit, 3f)) {
+                        if (hit.transform.gameObject.name == "Reticle Far") {
+                            inSights = true;
+                            break;
+                        }
+                    }
+                }
+                inSights = false;
+            }
+        }
+    }
+
     void BoundsWarning() {
         warning.SetActive(true);
         outOfBoundsTime += Time.deltaTime;
@@ -256,8 +267,8 @@ public class PlaneControl : NetworkBehaviour
     }
 
     [Client]
-    void shoot() {
-        fireRate = 0.03f;
+    void shoot(float rate, bool shouldTrack, GameObject trackTarget) {
+        fireRate = rate;
         if (gunFireSide > 0) {
             rightLaser.Play();
         } else {
@@ -276,9 +287,9 @@ public class PlaneControl : NetworkBehaviour
         }
 
         if (_ID == "Player 1") {
-            CmdShootBlue(position, rotation); // two versions because spawnable prefabs (don't clean)
+            CmdShootBlue(position, rotation, shouldTrack, trackTarget); // two versions because spawnable prefabs (don't clean)
         } else {
-            CmdShootRed(position, rotation);
+            CmdShootRed(position, rotation, shouldTrack, trackTarget);
         }
     }
 
@@ -286,6 +297,7 @@ public class PlaneControl : NetworkBehaviour
     void RpcDisableModel() {
         pilotCamera.transform.localPosition -= 69f * Vector3.forward;
         blueModel.SetActive(false);
+        interior.SetActive(false);
         redModel.SetActive(false);
         thruster.SetActive(false);
         GetComponent<BoxCollider>().enabled = false;
@@ -336,16 +348,26 @@ public class PlaneControl : NetworkBehaviour
     }
 
     [Command]
-    void CmdShootBlue(Vector3 position, Quaternion rotation) {
+    void CmdShootBlue(Vector3 position, Quaternion rotation, bool shouldTrack, GameObject trackTarget) {
         GameObject laser = Instantiate(blueLaserPrefab, position, transform.rotation);
-        laser.GetComponent<Laser>().owner = _ID;
+        Laser laserComponent = laser.GetComponent<Laser>();
+        laserComponent.owner = _ID;
+        laserComponent.tracking = shouldTrack;
+        if (shouldTrack) {
+            laserComponent.trackedTarget = trackTarget;
+        }
         NetworkServer.SpawnWithClientAuthority(laser, GetComponent<NetworkIdentity>().connectionToClient);
     }
 
     [Command]
-    void CmdShootRed(Vector3 position, Quaternion rotation) {
-        GameObject laser = Instantiate(blueLaserPrefab, position, transform.rotation);
-        laser.GetComponent<Laser>().owner = _ID;
+    void CmdShootRed(Vector3 position, Quaternion rotation, bool shouldTrack, GameObject trackTarget) {
+        GameObject laser = Instantiate(redLaserPrefab, position, transform.rotation);
+        Laser laserComponent = laser.GetComponent<Laser>();
+        laserComponent.owner = _ID;
+        laserComponent.tracking = shouldTrack;
+        if (shouldTrack) {
+            laserComponent.trackedTarget = trackTarget;
+        }
         NetworkServer.SpawnWithClientAuthority(laser, GetComponent<NetworkIdentity>().connectionToClient);
     }
 
