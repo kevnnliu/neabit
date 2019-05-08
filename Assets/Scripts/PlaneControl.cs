@@ -17,6 +17,7 @@ public class PlaneControl : NetworkBehaviour
     public bool keyboardControl;
     public string set_ID;
     public float serverLag;
+    public GameObject warning;
 
     [SyncVar]
     public float hp;
@@ -42,6 +43,7 @@ public class PlaneControl : NetworkBehaviour
     private float fireRate;
     private float gunFireSide = -1;
     private float respawnTime;
+    private float outOfBoundsTime;
 
     // How much keyboard inputs affect controller (will not be necessary in VR)
     public float controlRate = 2;
@@ -66,6 +68,7 @@ public class PlaneControl : NetworkBehaviour
         fireRate = 0.5f;
         isDead = false;
         respawnTime = 0;
+        outOfBoundsTime = 0;
 
         GameObject[] goArray = GameObject.FindGameObjectsWithTag("Player");
         int playerNum = goArray.Length - 1;
@@ -85,6 +88,14 @@ public class PlaneControl : NetworkBehaviour
         if (this.isLocalPlayer) {
             OVRInput.Update();
 
+            if (Mathf.Abs(transform.position.x) > 2500 || Mathf.Abs(transform.position.y) > 2500
+                    || Mathf.Abs(transform.position.z) > 2500) {
+                BoundsWarning();
+            } else {
+                warning.SetActive(false);
+                outOfBoundsTime = 0;
+            }
+
             if (_ID != "Player 1" && _ID != "Player 2") {
                 CmdUpdatePlayerID();
             }
@@ -97,7 +108,7 @@ public class PlaneControl : NetworkBehaviour
             }
 
             if (!isDead) {
-                    if (keyboardControl) {
+                if (keyboardControl) {
                     pitchPosition = ShiftTowards(pitchPosition, Input.GetAxis("Pitch"), controlRate);
                     rollPosition = ShiftTowards(rollPosition, Input.GetAxis("Roll"), controlRate);
                     yawPosition = ShiftTowards(yawPosition, Input.GetAxis("Yaw"), controlRate);
@@ -110,7 +121,6 @@ public class PlaneControl : NetworkBehaviour
                     }
 
                     if (Input.GetKey(KeyCode.P) && fireRate == 0) {
-                        fireRate = 0.02f;
                         shoot();
                         gunFireSide *= -1;
                     }
@@ -120,6 +130,13 @@ public class PlaneControl : NetworkBehaviour
                     yawPosition = ShiftTowards(yawPosition, OVRInput.Get(OVRInput.Axis2D.SecondaryThumbstick).x, controlRate);
                     throttleInput = OVRInput.Get(OVRInput.Axis1D.PrimaryHandTrigger) > 0.5;
 
+                    if (OVRInput.Get(OVRInput.Button.PrimaryThumbstickDown)) {
+                        pilotCamera.transform.localPosition += 0.2f * Vector3.up;
+                    }
+                    if (OVRInput.Get(OVRInput.Button.SecondaryThumbstickDown)) {
+                        pilotCamera.transform.localPosition += 0.2f * Vector3.down;
+                    }
+
                     if (fireRate > 0) {
                         fireRate -= Time.deltaTime;
                     } else {
@@ -127,7 +144,6 @@ public class PlaneControl : NetworkBehaviour
                     }
 
                     if (OVRInput.Get(OVRInput.Axis1D.SecondaryIndexTrigger) > 0.5 && fireRate == 0) {
-                        fireRate = 0.02f;
                         shoot();
                         gunFireSide *= -1;
                     }
@@ -202,6 +218,15 @@ public class PlaneControl : NetworkBehaviour
         }
     }
 
+    void BoundsWarning() {
+        warning.SetActive(true);
+        outOfBoundsTime += Time.deltaTime;
+        if (outOfBoundsTime >= 5) {
+            CmdExplode();
+            outOfBoundsTime = -50;
+        }
+    }
+
     // Updates a value towards a target value, with a maximum delta per second
     float ShiftTowards(float value, float target, float delta) {
         if (value < target) {
@@ -212,6 +237,7 @@ public class PlaneControl : NetworkBehaviour
 
     [Client]
     void shoot() {
+        fireRate = 0.03f;
         if (gunFireSide > 0) {
             rightLaser.Play();
         } else {
@@ -221,14 +247,13 @@ public class PlaneControl : NetworkBehaviour
         Quaternion rotation = transform.rotation;
 
         if (!isServer) { // predicts where laser should be, ideally serverLag is updated in real time
-            position += rb.velocity * Time.deltaTime * serverLag;
-            rotation *= Quaternion.Euler(rb.angularVelocity * Time.deltaTime * serverLag);
+            Vector3 shipPosition = transform.position + rb.velocity * Time.deltaTime * serverLag;
+            Quaternion shipRotation = Quaternion.Euler(rb.angularVelocity * Time.deltaTime * serverLag)
+                                         * transform.rotation;
+            position = shipPosition + shipRotation * position;
+        } else {
+            position = transform.position + transform.rotation * position;
         }
-        Vector3 shipPosition = transform.position + rb.velocity * Time.deltaTime * serverLag;
-        Quaternion shipRotation = Quaternion.Euler(rb.angularVelocity * Time.deltaTime * serverLag)
-                * transform.rotation;
-
-        position = shipPosition + shipRotation * position;
 
         if (_ID == "Player 1") {
             CmdShootBlue(position, rotation); // two versions because spawnable prefabs (don't clean)

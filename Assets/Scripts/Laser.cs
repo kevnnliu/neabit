@@ -18,7 +18,7 @@ public class Laser : NetworkBehaviour
     void Start()
     {
         rb = GetComponent<Rigidbody>();
-        lifeTime = 5.0f;
+        lifeTime = 3.0f;
     }
 
     // Update is called once per frame
