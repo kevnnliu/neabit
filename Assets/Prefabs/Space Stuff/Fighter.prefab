@@ -1,5 +1,36 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &844020899399274906
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 801582193462064266}
+  m_Layer: 0
+  m_Name: Camera Wrapper
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &801582193462064266
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 844020899399274906}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.3, z: 5.3}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children:
+  - {fileID: 862242778731702204}
+  m_Father: {fileID: 5798849779599797594}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &981665063469155219
 GameObject:
   m_ObjectHideFlags: 0
@@ -423,6 +454,7 @@ GameObject:
   - component: {fileID: 4318754612412862200}
   - component: {fileID: 4318754612411862072}
   - component: {fileID: 4318754612402217272}
+  - component: {fileID: 8979568845858272189}
   m_Layer: 0
   m_Name: Reticle Near
   m_TagString: Untagged
@@ -509,6 +541,19 @@ Animator:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorControllerStateOnDisable: 0
+--- !u!65 &8979568845858272189
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4318754612409602808}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 2.0000017, y: 2.0000021, z: 2.0000017}
+  m_Center: {x: 2.6147973e-12, y: 0.0000045299525, z: -0.000015258789}
 --- !u!1 &4424269916494182520
 GameObject:
   m_ObjectHideFlags: 0
@@ -621,6 +666,7 @@ GameObject:
   - component: {fileID: 4455478135272406655}
   - component: {fileID: 4455478135273503935}
   - component: {fileID: 4455478135278588351}
+  - component: {fileID: 934504861499297769}
   m_Layer: 0
   m_Name: Reticle Far
   m_TagString: Untagged
@@ -707,6 +753,19 @@ Animator:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorControllerStateOnDisable: 0
+--- !u!65 &934504861499297769
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4455478135271301759}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 2.0000017, y: 2.0000021, z: 2.0000017}
+  m_Center: {x: 3.1832315e-12, y: 0.000005960464, z: -0.000061035156}
 --- !u!1 &4843767180335739784
 GameObject:
   m_ObjectHideFlags: 0
@@ -6051,7 +6110,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &862242778731702204
 Transform:
   m_ObjectHideFlags: 0
@@ -6060,10 +6119,10 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6659198564986622062}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.3, z: 5.3}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
-  m_Father: {fileID: 5798849779599797594}
+  m_Father: {fileID: 801582193462064266}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!20 &7089993228550821057
@@ -6274,7 +6333,7 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
-  - {fileID: 862242778731702204}
+  - {fileID: 801582193462064266}
   - {fileID: 981665063468933043}
   - {fileID: 981665063468933047}
   - {fileID: 8459187165451079674}
@@ -6296,7 +6355,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5c00b10e5b1ccad42a0cc6714c4bb627, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  pilotCamera: {fileID: 6659198564986622062}
+  pilotCamera: {fileID: 844020899399274906}
   blueLaserPrefab: {fileID: 9073130967879404148, guid: da282432c17994ebb812dcef8fce24e7,
     type: 3}
   redLaserPrefab: {fileID: 9073130967879404148, guid: 79ae3e9de5e77d14cabbc2fec954550a,
@@ -6313,6 +6372,7 @@ MonoBehaviour:
   set_ID: 
   serverLag: 5
   warning: {fileID: 4954054842182046188}
+  reticleNear: {fileID: 0}
   hp: 100
   isDead: 0
   _ID: 

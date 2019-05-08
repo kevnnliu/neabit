@@ -18,6 +18,7 @@ public class PlaneControl : NetworkBehaviour
     public string set_ID;
     public float serverLag;
     public GameObject warning;
+    public GameObject reticleNear;
 
     [SyncVar]
     public float hp;
@@ -44,6 +45,7 @@ public class PlaneControl : NetworkBehaviour
     private float gunFireSide = -1;
     private float respawnTime;
     private float outOfBoundsTime;
+    private bool inSights;
 
     // How much keyboard inputs affect controller (will not be necessary in VR)
     public float controlRate = 2;
@@ -130,11 +132,11 @@ public class PlaneControl : NetworkBehaviour
                     yawPosition = ShiftTowards(yawPosition, OVRInput.Get(OVRInput.Axis2D.SecondaryThumbstick).x, controlRate);
                     throttleInput = OVRInput.Get(OVRInput.Axis1D.PrimaryHandTrigger) > 0.5;
 
-                    if (OVRInput.Get(OVRInput.Button.PrimaryThumbstickDown)) {
-                        pilotCamera.transform.localPosition += 0.2f * Vector3.up;
+                    if (OVRInput.Get(OVRInput.Button.PrimaryThumbstick)) {
+                        pilotCamera.transform.localPosition += 0.1f * Vector3.up * Time.deltaTime;
                     }
-                    if (OVRInput.Get(OVRInput.Button.SecondaryThumbstickDown)) {
-                        pilotCamera.transform.localPosition += 0.2f * Vector3.down;
+                    if (OVRInput.Get(OVRInput.Button.SecondaryThumbstick)) {
+                        pilotCamera.transform.localPosition += 0.1f * Vector3.down * Time.deltaTime;
                     }
 
                     if (fireRate > 0) {
@@ -192,6 +194,24 @@ public class PlaneControl : NetworkBehaviour
                     }
                     if (rb.velocity.magnitude > 0) {
                         rb.AddRelativeForce(0.15f * -rb.velocity);
+                    }
+                }
+
+                // is target in reticles?
+                GameObject[] playerArray = GameObject.FindGameObjectsWithTag("Player");
+                if (playerArray.Length > 1) {
+                    foreach (GameObject p in playerArray) {
+                        if (p.GetComponent<PlaneControl>()._ID != _ID) {
+                            RaycastHit hit;
+                            if (Physics.Raycast(reticleNear.transform.position
+                                , p.transform.position - reticleNear.transform.position, out hit, 3f)) {
+                                if (hit.transform.gameObject.name == "Reticle Far") {
+                                    inSights = true;
+                                    break;
+                                }
+                            }
+                        }
+                        inSights = false;
                     }
                 }
             }
