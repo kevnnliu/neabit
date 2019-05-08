@@ -109,9 +109,8 @@ public class PlaneControl : NetworkBehaviour
                     }
 
                     if (Input.GetKey(KeyCode.P) && fireRate == 0) {
-                        fireRate = 0.1f;
-                        CmdShoot(gunFireSide, transform.position
-                             + (transform.forward * 8) + (gunFireSide * (transform.right * 3)) + (transform.up * 0.3f), transform.rotation);
+                        fireRate = 0.02f;
+                        shoot();
                         gunFireSide *= -1;
                     }
                 } else {
@@ -127,9 +126,8 @@ public class PlaneControl : NetworkBehaviour
                     }
 
                     if (OVRInput.Get(OVRInput.Axis1D.SecondaryIndexTrigger) > 0.5 && fireRate == 0) {
-                        fireRate = 0.1f;
-                        CmdShoot(gunFireSide, transform.position
-                             + (transform.forward * 8) + (gunFireSide * (transform.right * 3)) + (transform.up * 0.3f), transform.rotation);
+                        fireRate = 0.02f;
+                        shoot();
                         gunFireSide *= -1;
                     }
                 }
@@ -145,7 +143,7 @@ public class PlaneControl : NetworkBehaviour
             if (updateInterval > 0.05f) // 20 times per second
             {
                 updateInterval = 0;
-                CmdSync(rb.position, rb.rotation);
+                CmdSync(transform.position, transform.rotation);
                 CmdUpdateParticles(isThrusting);
             }
         } else {
@@ -186,7 +184,7 @@ public class PlaneControl : NetworkBehaviour
                 thrusterSound.Stop();
             }
             if (rb.velocity.magnitude > 0) {
-                rb.AddRelativeForce(0.5f * -rb.velocity);
+                rb.velocity = Vector3.zero;
             }
         }
     }
@@ -211,10 +209,26 @@ public class PlaneControl : NetworkBehaviour
         return Mathf.Max(value - Mathf.Abs(delta) * Time.deltaTime, target);
     }
 
+    [Client]
+    void shoot() {
+        if (gunFireSide > 0) {
+            rightLaser.Play();
+        } else {
+            leftLaser.Play();
+        }
+        if (_ID == "Player 1") {
+            CmdShootBlue(gunFireSide); // two versions because spawnable prefabs (don't clean)
+        } else {
+            CmdShootRed(gunFireSide);
+        }
+    }
+
     [ClientRpc]
     void RpcDisableModel() {
+        pilotCamera.transform.localPosition -= 69f * Vector3.forward;
         blueModel.SetActive(false);
         redModel.SetActive(false);
+        thruster.SetActive(false);
         GetComponent<BoxCollider>().enabled = false;
     }
 
@@ -262,26 +276,19 @@ public class PlaneControl : NetworkBehaviour
     }
 
     [Command]
-    void CmdShoot(float gunSide, Vector3 position, Quaternion rotation) {
-        if (_ID == "Player 1") {
-            GameObject l1 = Instantiate(blueLaserPrefab, position, rotation);
-            l1.GetComponent<Laser>().owner = _ID;
-            if (gunSide > 0) {
-                rightLaser.Play();
-            } else {
-                leftLaser.Play();
-            }
-            NetworkServer.SpawnWithClientAuthority(l1, GetComponent<NetworkIdentity>().connectionToClient);
-        } else {
-            GameObject l1 = Instantiate(redLaserPrefab, position, rotation);
-            l1.GetComponent<Laser>().owner = _ID;
-            if (gunSide > 0) {
-                rightLaser.Play();
-            } else {
-                leftLaser.Play();
-            }
-            NetworkServer.SpawnWithClientAuthority(l1, GetComponent<NetworkIdentity>().connectionToClient);
-        }
+    void CmdShootBlue(float gunSide) {
+        GameObject laser = Instantiate(blueLaserPrefab, transform.position
+                 + (transform.forward * 8) + (gunSide * (transform.right * 3)) + (transform.up * 0.3f), transform.rotation);
+        laser.GetComponent<Laser>().owner = _ID;
+        NetworkServer.SpawnWithClientAuthority(laser, GetComponent<NetworkIdentity>().connectionToClient);
+    }
+
+    [Command]
+    void CmdShootRed(float gunSide) {
+        GameObject laser = Instantiate(redLaserPrefab, transform.position
+                 + (transform.forward * 8) + (gunSide * (transform.right * 3)) + (transform.up * 0.3f), transform.rotation);
+        laser.GetComponent<Laser>().owner = _ID;
+        NetworkServer.SpawnWithClientAuthority(laser, GetComponent<NetworkIdentity>().connectionToClient);
     }
 
     [Command]
