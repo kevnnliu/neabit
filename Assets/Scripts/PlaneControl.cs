@@ -251,16 +251,16 @@ public class PlaneControl : NetworkBehaviour
 
     void trackingCalculation() {
         // is target in reticles?
-        List<GameObject> playerList = new List<GameObject>();
+        List<PlaneControl> playerList = new List<PlaneControl>();
         GameObject[] playerArray = GameObject.FindGameObjectsWithTag("Player");
         foreach (GameObject go in playerArray) {
-            if (go != null) {
-                playerList.Add(go);
+            if (go != null && go.GetComponent<PlaneControl>() != null) {
+                playerList.Add(go.GetComponent<PlaneControl>());
             }
         }
         if (playerList.Count > 1) {
-            foreach (GameObject p in playerList) {
-                if (p.GetComponent<PlaneControl>()._ID != _ID) {
+            foreach (PlaneControl p in playerList) {
+                if (p._ID != _ID) {
                     trackingTarget = p.gameObject;
                     RaycastHit hit;
                     if (Physics.Raycast(reticleNear.transform.position
