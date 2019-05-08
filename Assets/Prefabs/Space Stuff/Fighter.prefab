@@ -6319,8 +6319,8 @@ MonoBehaviour:
   isThrusting: 0
   throttleCoeff: 300
   pitchRate: 50
-  yawRate: 30
-  rollRate: 30
+  yawRate: 60
+  rollRate: 50
   controlRate: 8
 --- !u!54 &5340004279620953261
 Rigidbody:
