@@ -16,6 +16,7 @@ public class PlaneControl : NetworkBehaviour
     public AudioSource rightLaser;
     public bool keyboardControl;
     public string set_ID;
+    public float serverLag;
 
     [SyncVar]
     public float hp;
@@ -216,10 +217,19 @@ public class PlaneControl : NetworkBehaviour
         } else {
             leftLaser.Play();
         }
+        Vector3 position = transform.position
+                 + (transform.forward * 8) + (gunFireSide * (transform.right * 3)) + (transform.up * 0.3f);
+        Quaternion rotation = transform.rotation;
+
+        if (!isServer) { // predicts where laser should be, ideally serverLag is updated in real time
+            position += rb.velocity * Time.deltaTime * serverLag;
+            rotation *= Quaternion.Euler(rb.angularVelocity * Time.deltaTime * serverLag);
+        }
+
         if (_ID == "Player 1") {
-            CmdShootBlue(gunFireSide); // two versions because spawnable prefabs (don't clean)
+            CmdShootBlue(position, rotation); // two versions because spawnable prefabs (don't clean)
         } else {
-            CmdShootRed(gunFireSide);
+            CmdShootRed(position, rotation);
         }
     }
 
@@ -262,6 +272,7 @@ public class PlaneControl : NetworkBehaviour
         isDead = true;
         hp = 0;
         thruster.SetActive(false);
+        rb.velocity = Vector3.zero;
         RpcDisableModel();
     }
 
@@ -276,17 +287,15 @@ public class PlaneControl : NetworkBehaviour
     }
 
     [Command]
-    void CmdShootBlue(float gunSide) {
-        GameObject laser = Instantiate(blueLaserPrefab, transform.position
-                 + (transform.forward * 8) + (gunSide * (transform.right * 3)) + (transform.up * 0.3f), transform.rotation);
+    void CmdShootBlue(Vector3 position, Quaternion rotation) {
+        GameObject laser = Instantiate(blueLaserPrefab, position, transform.rotation);
         laser.GetComponent<Laser>().owner = _ID;
         NetworkServer.SpawnWithClientAuthority(laser, GetComponent<NetworkIdentity>().connectionToClient);
     }
 
     [Command]
-    void CmdShootRed(float gunSide) {
-        GameObject laser = Instantiate(redLaserPrefab, transform.position
-                 + (transform.forward * 8) + (gunSide * (transform.right * 3)) + (transform.up * 0.3f), transform.rotation);
+    void CmdShootRed(Vector3 position, Quaternion rotation) {
+        GameObject laser = Instantiate(blueLaserPrefab, position, transform.rotation);
         laser.GetComponent<Laser>().owner = _ID;
         NetworkServer.SpawnWithClientAuthority(laser, GetComponent<NetworkIdentity>().connectionToClient);
     }
