@@ -6373,6 +6373,7 @@ MonoBehaviour:
   serverLag: 5
   warning: {fileID: 4954054842182046188}
   reticleNear: {fileID: 4318754612409602808}
+  reticleFar: {fileID: 4455478135271301759}
   interior: {fileID: 981665063469155219}
   hp: 100
   isDead: 0

@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.Networking;
 using System.Collections.Generic;
+using UnityEngine.UI;
 
 public class PlaneControl : NetworkBehaviour
 {
@@ -20,6 +21,7 @@ public class PlaneControl : NetworkBehaviour
     public float serverLag;
     public GameObject warning;
     public GameObject reticleNear;
+    public GameObject reticleFar;
     public GameObject interior;
 
     [SyncVar]
@@ -128,7 +130,7 @@ public class PlaneControl : NetworkBehaviour
                     }
 
                     if (Input.GetKey(KeyCode.P) && fireRate == 0) {
-                        shoot(0.03f, false, trackingTarget);
+                        shoot(0.04f, false, trackingTarget);
                         gunFireSide *= -1;
                     }
                 } else {
@@ -146,6 +148,18 @@ public class PlaneControl : NetworkBehaviour
                         pilotCamera.transform.localPosition += 0.1f * Vector3.down * Time.deltaTime;
                     }
 
+                    if (inSights) {
+                        reticleNear.GetComponentInChildren<Image>().color = Color.yellow;
+                    } else {
+                        reticleNear.GetComponentInChildren<Image>().color = Color.white;
+                    }
+
+                    if (tracking) {
+                        reticleFar.GetComponentInChildren<Image>().color = Color.yellow;
+                    } else {
+                        reticleFar.GetComponentInChildren<Image>().color = Color.white;
+                    }
+
                     if (fireRate > 0) {
                         fireRate -= Time.deltaTime;
                     } else {
@@ -153,7 +167,11 @@ public class PlaneControl : NetworkBehaviour
                     }
 
                     if (shooting && fireRate == 0) {
-                        shoot(0.03f, inSights && tracking, trackingTarget);
+                        float rate = 0.04f;
+                        if (tracking) {
+                            rate = 0.12f;
+                        }
+                        shoot(rate, inSights && tracking, trackingTarget);
                         gunFireSide *= -1;
                     }
                 }
