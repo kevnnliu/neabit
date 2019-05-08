@@ -23,6 +23,7 @@ public class PlaneControl : NetworkBehaviour
     public GameObject reticleNear;
     public GameObject reticleFar;
     public GameObject interior;
+    public float bound;
 
     [SyncVar]
     public float hp;
@@ -45,11 +46,13 @@ public class PlaneControl : NetworkBehaviour
     private float yawPosition;
     private float throttlePosition;
     private bool throttleInput;
+    private bool brakeInput;
     private float fireRate;
     private float gunFireSide = -1;
     private float respawnTime;
     private float outOfBoundsTime;
     private bool inSights;
+    private float thrustMultiplier = 1;
     private GameObject trackingTarget;
 
     // How much keyboard inputs affect controller (will not be necessary in VR)
@@ -97,8 +100,8 @@ public class PlaneControl : NetworkBehaviour
         if (this.isLocalPlayer) {
             OVRInput.Update();
 
-            if (Mathf.Abs(transform.position.x) > 2500 || Mathf.Abs(transform.position.y) > 2500
-                    || Mathf.Abs(transform.position.z) > 2500) {
+            if (Mathf.Abs(transform.position.x) > bound || Mathf.Abs(transform.position.y) > bound
+                    || Mathf.Abs(transform.position.z) > bound) {
                 BoundsWarning();
             } else {
                 warning.SetActive(false);
@@ -122,6 +125,7 @@ public class PlaneControl : NetworkBehaviour
                     rollPosition = ShiftTowards(rollPosition, Input.GetAxis("Roll"), controlRate);
                     yawPosition = ShiftTowards(yawPosition, Input.GetAxis("Yaw"), controlRate);
                     throttleInput = Input.GetKey(KeyCode.Space);
+                    brakeInput = Input.GetKey(KeyCode.LeftShift);
 
                     if (fireRate > 0) {
                         fireRate -= Time.deltaTime;
@@ -138,6 +142,7 @@ public class PlaneControl : NetworkBehaviour
                     rollPosition = ShiftTowards(rollPosition, OVRInput.Get(OVRInput.Axis2D.PrimaryThumbstick).x, controlRate);
                     yawPosition = ShiftTowards(yawPosition, OVRInput.Get(OVRInput.Axis2D.SecondaryThumbstick).x, controlRate);
                     throttleInput = OVRInput.Get(OVRInput.Axis1D.PrimaryHandTrigger) > 0.5;
+                    brakeInput = OVRInput.Get(OVRInput.Axis1D.PrimaryIndexTrigger) > 0.5;
                     bool tracking = OVRInput.Get(OVRInput.Axis1D.SecondaryHandTrigger) > 0.5;
                     bool shooting = OVRInput.Get(OVRInput.Axis1D.SecondaryIndexTrigger) > 0.5;
 
@@ -169,7 +174,7 @@ public class PlaneControl : NetworkBehaviour
                     if (shooting && fireRate == 0) {
                         float rate = 0.04f;
                         if (tracking) {
-                            rate = 0.12f;
+                            rate = 0.2f;
                         }
                         shoot(rate, inSights && tracking, trackingTarget);
                         gunFireSide *= -1;
@@ -205,9 +210,16 @@ public class PlaneControl : NetworkBehaviour
             em.enabled = isThrusting;
 
             if (!isDead) {
-                rb.AddRelativeTorque(new Vector3(pitchRate * pitchPosition, yawRate * yawPosition, -rollRate * rollPosition));
+                if (brakeInput) {
+                    thrustMultiplier = 2f;
+                } else {
+                    thrustMultiplier = 1;
+                }
+                rb.AddRelativeTorque(new Vector3(pitchRate * pitchPosition, yawRate * yawPosition
+                                        , -rollRate * rollPosition) * thrustMultiplier);
                 if (throttleInput) {
-                    rb.AddRelativeForce(0, 0, throttleCoeff * throttlePosition);
+                    rb.AddRelativeForce(0, 0, throttleCoeff * throttlePosition
+                                         / thrustMultiplier / thrustMultiplier);
                     if (!thrusterSound.isPlaying) {
                         thrusterSound.Play();
                         isThrusting = true;
@@ -219,7 +231,7 @@ public class PlaneControl : NetworkBehaviour
                         isThrusting = false;
                     }
                     if (rb.velocity.magnitude > 0) {
-                        rb.AddRelativeForce(0.15f * -rb.velocity);
+                        rb.AddRelativeForce(thrustMultiplier * thrustMultiplier * 0.15f * -rb.velocity);
                     }
                     OVRInput.SetControllerVibration(0, 0, OVRInput.Controller.LTouch);
                 }
@@ -279,7 +291,7 @@ public class PlaneControl : NetworkBehaviour
     void BoundsWarning() {
         warning.SetActive(true);
         outOfBoundsTime += Time.deltaTime;
-        if (outOfBoundsTime >= 5) {
+        if (outOfBoundsTime >= 10) {
             CmdExplode();
             outOfBoundsTime = -50;
         }
