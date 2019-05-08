@@ -6368,7 +6368,7 @@ MonoBehaviour:
     type: 3}
   leftLaser: {fileID: 5176892109240733061}
   rightLaser: {fileID: 2337687639198069503}
-  keyboardControl: 1
+  keyboardControl: 0
   set_ID: 
   serverLag: 5
   warning: {fileID: 4954054842182046188}
@@ -6382,7 +6382,7 @@ MonoBehaviour:
   isThrusting: 0
   throttleCoeff: 400
   pitchRate: 40
-  yawRate: 50
+  yawRate: 60
   rollRate: 40
   controlRate: 8
 --- !u!54 &5340004279620953261

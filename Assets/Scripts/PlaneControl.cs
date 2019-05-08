@@ -211,7 +211,7 @@ public class PlaneControl : NetworkBehaviour
 
             if (!isDead) {
                 if (brakeInput) {
-                    thrustMultiplier = 2f;
+                    thrustMultiplier = 1.8f;
                 } else {
                     thrustMultiplier = 1;
                 }
@@ -231,7 +231,7 @@ public class PlaneControl : NetworkBehaviour
                         isThrusting = false;
                     }
                     if (rb.velocity.magnitude > 0) {
-                        rb.AddRelativeForce(thrustMultiplier * thrustMultiplier * 0.15f * -rb.velocity);
+                        rb.AddRelativeForce(0.15f * -rb.velocity / thrustMultiplier / thrustMultiplier);
                     }
                     OVRInput.SetControllerVibration(0, 0, OVRInput.Controller.LTouch);
                 }
@@ -370,6 +370,7 @@ public class PlaneControl : NetworkBehaviour
         GameObject e = Instantiate(explosionPrefab, transform.position, transform.rotation);
         NetworkServer.SpawnWithClientAuthority(e, GetComponent<NetworkIdentity>().connectionToClient);
         isDead = true;
+        GetComponent<BoxCollider>().enabled = false;
         hp = 0;
         thruster.SetActive(false);
         rb.velocity = Vector3.zero;
@@ -382,6 +383,7 @@ public class PlaneControl : NetworkBehaviour
         var spawn = NetworkManager.singleton.GetStartPosition();
         var newPlayer = (GameObject) Instantiate(NetworkManager.singleton.playerPrefab, spawn.position, spawn.rotation);
         newPlayer.GetComponent<PlaneControl>().set_ID = _ID;
+        newPlayer.GetComponent<PlaneControl>().pilotCamera.transform.localPosition = pilotCamera.transform.localPosition;
         NetworkServer.Destroy(this.gameObject);
         NetworkServer.ReplacePlayerForConnection(this.connectionToClient, newPlayer, this.playerControllerId);
     }
