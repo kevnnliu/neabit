@@ -217,14 +217,18 @@ public class PlaneControl : NetworkBehaviour
         } else {
             leftLaser.Play();
         }
-        Vector3 position = transform.position
-                 + (transform.forward * 8) + (gunFireSide * (transform.right * 3)) + (transform.up * 0.3f);
+        Vector3 position = new Vector3(gunFireSide * 3, 0.3f, 8);
         Quaternion rotation = transform.rotation;
 
         if (!isServer) { // predicts where laser should be, ideally serverLag is updated in real time
             position += rb.velocity * Time.deltaTime * serverLag;
             rotation *= Quaternion.Euler(rb.angularVelocity * Time.deltaTime * serverLag);
         }
+        Vector3 shipPosition = transform.position + rb.velocity * Time.deltaTime * serverLag;
+        Quaternion shipRotation = Quaternion.Euler(rb.angularVelocity * Time.deltaTime * serverLag)
+                * transform.rotation;
+
+        position = shipPosition + shipRotation * position;
 
         if (_ID == "Player 1") {
             CmdShootBlue(position, rotation); // two versions because spawnable prefabs (don't clean)
