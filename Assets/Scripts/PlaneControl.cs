@@ -193,6 +193,7 @@ public class PlaneControl : NetworkBehaviour
                         thrusterSound.Play();
                         isThrusting = true;
                     }
+                    OVRInput.SetControllerVibration(1, 1, OVRInput.Controller.LTouch);
                 } else {
                     if (thrusterSound.isPlaying) {
                         thrusterSound.Stop();
@@ -201,6 +202,7 @@ public class PlaneControl : NetworkBehaviour
                     if (rb.velocity.magnitude > 0) {
                         rb.AddRelativeForce(0.15f * -rb.velocity);
                     }
+                    OVRInput.SetControllerVibration(0, 0, OVRInput.Controller.LTouch);
                 }
 
                 trackingCalculation();
