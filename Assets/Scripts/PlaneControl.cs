@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.Networking;
+using System.Collections.Generic;
 
 public class PlaneControl : NetworkBehaviour
 {
@@ -232,9 +233,15 @@ public class PlaneControl : NetworkBehaviour
 
     void trackingCalculation() {
         // is target in reticles?
+        List<GameObject> playerList = new List<GameObject>();
         GameObject[] playerArray = GameObject.FindGameObjectsWithTag("Player");
-        if (playerArray.Length > 1) {
-            foreach (GameObject p in playerArray) {
+        foreach (GameObject go in playerArray) {
+            if (go != null) {
+                playerList.Add(go);
+            }
+        }
+        if (playerList.Count > 1) {
+            foreach (GameObject p in playerList) {
                 if (p.GetComponent<PlaneControl>()._ID != _ID) {
                     trackingTarget = p.gameObject;
                     RaycastHit hit;
