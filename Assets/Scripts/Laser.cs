@@ -52,12 +52,15 @@ public class Laser : NetworkBehaviour
         } else {
             rb.velocity = transform.forward * laserSpeed;
         }
-        RpcUpdate(rb.velocity);
+        if (isServer) {
+            RpcUpdateVector(rb.velocity, transform.rotation);
+        }
     }
 
     [ClientRpc]
-    void RpcUpdate(Vector3 rbvel) {
+    void RpcUpdateVector(Vector3 rbvel, Quaternion rotation) {
         rb.velocity = rbvel;
+        transform.rotation = rotation;
     }
 
     [Command]

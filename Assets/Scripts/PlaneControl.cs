@@ -98,6 +98,7 @@ public class PlaneControl : NetworkBehaviour
     }
     
     void Update() {
+        Debug.Log(Time.deltaTime);
         if (this.isLocalPlayer) {
             OVRInput.Update();
 
@@ -127,12 +128,19 @@ public class PlaneControl : NetworkBehaviour
                     reticleNear.GetComponentInChildren<Image>().color = Color.white;
                 }
 
+                if (Input.GetKeyDown(KeyCode.Q)) {
+                    keyboardControl = true;
+                }
+
+                bool tracking = false;
+
                 if (keyboardControl) {
                     pitchPosition = ShiftTowards(pitchPosition, Input.GetAxis("Pitch"), controlRate);
                     rollPosition = ShiftTowards(rollPosition, Input.GetAxis("Roll"), controlRate);
                     yawPosition = ShiftTowards(yawPosition, Input.GetAxis("Yaw"), controlRate);
                     throttleInput = Input.GetKey(KeyCode.Space);
                     brakeInput = Input.GetKey(KeyCode.LeftShift);
+                    tracking = Input.GetKey(KeyCode.U);
 
                     if (fireRate > 0) {
                         fireRate -= Time.deltaTime;
@@ -150,7 +158,7 @@ public class PlaneControl : NetworkBehaviour
                     yawPosition = ShiftTowards(yawPosition, OVRInput.Get(OVRInput.Axis2D.SecondaryThumbstick).x, controlRate);
                     throttleInput = OVRInput.Get(OVRInput.Axis1D.PrimaryHandTrigger) > 0.5;
                     brakeInput = OVRInput.Get(OVRInput.Axis1D.PrimaryIndexTrigger) > 0.5;
-                    bool tracking = OVRInput.Get(OVRInput.Axis1D.SecondaryHandTrigger) > 0.5;
+                    tracking = OVRInput.Get(OVRInput.Axis1D.SecondaryHandTrigger) > 0.5;
                     bool shooting = OVRInput.Get(OVRInput.Axis1D.SecondaryIndexTrigger) > 0.5;
 
                     if (OVRInput.Get(OVRInput.Button.PrimaryThumbstick)) {
@@ -158,12 +166,6 @@ public class PlaneControl : NetworkBehaviour
                     }
                     if (OVRInput.Get(OVRInput.Button.SecondaryThumbstick)) {
                         pilotCamera.transform.localPosition += 0.1f * Vector3.down * Time.deltaTime;
-                    }
-
-                    if (tracking) {
-                        reticleFar.GetComponentInChildren<Image>().color = Color.yellow;
-                    } else {
-                        reticleFar.GetComponentInChildren<Image>().color = Color.white;
                     }
 
                     if (fireRate > 0) {
@@ -180,6 +182,12 @@ public class PlaneControl : NetworkBehaviour
                         shoot(rate, inSights && tracking, trackingTarget);
                         gunFireSide *= -1;
                     }
+                }
+
+                if (tracking) {
+                    reticleFar.GetComponentInChildren<Image>().color = Color.yellow;
+                } else {
+                    reticleFar.GetComponentInChildren<Image>().color = Color.white;
                 }
             }
 
@@ -317,11 +325,12 @@ public class PlaneControl : NetworkBehaviour
         Vector3 position = new Vector3(gunFireSide * 3, 0.3f, 8);
         Quaternion rotation = transform.rotation;
 
-        if (isServer) { // predicts where laser should be, ideally serverLag is updated in real time
-            Vector3 shipPosition = transform.position + rb.velocity * Time.deltaTime * serverLag;
-            Quaternion shipRotation = Quaternion.Euler(rb.angularVelocity * Time.deltaTime * serverLag)
+        if (!isServer) { // predicts where laser should be, ideally serverLag is updated in real time
+            Vector3 shipPosition = transform.position + rb.velocity * serverLag;
+            Quaternion shipRotation = Quaternion.Euler(rb.angularVelocity * serverLag)
                                          * transform.rotation;
             position = shipPosition + shipRotation * position;
+            rotation *= shipRotation;
         } else {
             position = transform.position + transform.rotation * position;
         }
