@@ -18,7 +18,7 @@ public class Laser : NetworkBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        lifeTime = 3.0f;
+        lifeTime = 2f;
     }
 
     // Update is called once per frame
@@ -45,20 +45,20 @@ public class Laser : NetworkBehaviour
             }
         }
         if (tracking) {
-            transform.position += Vector3.Normalize(trackedTarget.transform.position - transform.position)
-                                                     * laserSpeed * Time.deltaTime;
-            transform.rotation = Quaternion.LookRotation(transform.forward);
+            Vector3 trackDir = Vector3.Normalize(trackedTarget.transform.position - transform.position);
+            transform.position += trackDir * laserSpeed * Time.deltaTime;
+            transform.rotation = Quaternion.LookRotation(trackDir);
         } else {
             transform.position += transform.forward * laserSpeed * Time.deltaTime;
             transform.rotation = Quaternion.LookRotation(transform.forward);
         }
         if (isServer) {
-            RpcUpdateVector(transform.rotation, transform.position);
+            RpcLaserUpdate(transform.position, transform.rotation);
         }
     }
 
     [ClientRpc]
-    void RpcUpdateVector(Quaternion rotation, Vector3 position) {
+    void RpcLaserUpdate(Vector3 position, Quaternion rotation) {
         transform.position = position;
         transform.rotation = rotation;
     }

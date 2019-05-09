@@ -156,7 +156,11 @@ public class PlaneControl : NetworkBehaviour
                     }
 
                     if (Input.GetKey(KeyCode.P) && fireRate == 0) {
-                        shoot(0.04f, false, trackingTarget);
+                        float rate = 0.05f;
+                        if (tracking) {
+                            rate = 0.5f;
+                        }
+                        shoot(rate, inSights && tracking, trackingTarget);
                         gunFireSide *= -1;
                     }
                 } else {
@@ -184,9 +188,9 @@ public class PlaneControl : NetworkBehaviour
                     }
 
                     if (shooting && fireRate == 0) {
-                        float rate = 0.04f;
+                        float rate = 0.05f;
                         if (tracking) {
-                            rate = 0.2f;
+                            rate = 0.5f;
                         }
                         shoot(rate, inSights && tracking, trackingTarget);
                         gunFireSide *= -1;
@@ -207,7 +211,7 @@ public class PlaneControl : NetworkBehaviour
             }
 
             updateInterval += Time.deltaTime;
-            if (updateInterval > 0.05f) // 20 times per second
+            if (updateInterval > 0.11f) // 9 times per second
             {
                 updateInterval = 0;
                 CmdSync(transform.position, transform.rotation);
@@ -334,14 +338,13 @@ public class PlaneControl : NetworkBehaviour
         Vector3 position = new Vector3(gunFireSide * 3, 0.3f, 8);
         Quaternion rotation = transform.rotation;
 
-        if (isServer) { // predicts where laser should be, ideally serverLag is updated in real time
-            Vector3 shipPosition = transform.position + rb.velocity * serverLag;
-            Quaternion shipRotation = Quaternion.Euler(rb.angularVelocity * serverLag)
-                                         * transform.rotation;
-            position = shipPosition + shipRotation * position;
+        if (!isServer) { // predicts where laser should be, ideally serverLag is updated in real time
+            Vector3 shipPosition = transform.position + (rb.velocity * serverLag);
+            Quaternion shipRotation = Quaternion.Euler(rb.angularVelocity * serverLag * 2) * transform.rotation;
+            position = shipPosition + (shipRotation * position);
             rotation *= shipRotation;
         } else {
-            position = transform.position + transform.rotation * position;
+            position = transform.position + (transform.rotation * position);
         }
 
         if (_ID == "Player 1") {

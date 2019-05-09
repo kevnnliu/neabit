@@ -6356,13 +6356,13 @@ MonoBehaviour:
   rightLaser: {fileID: 2337687639198069503}
   keyboardControl: 0
   set_ID: 
-  serverLag: 0.03
+  serverLag: 0.08
   warning: {fileID: 4954054842182046188}
   reticleNear: {fileID: 4318754612409602808}
   reticleFar: {fileID: 4455478135271301759}
   interior: {fileID: 981665063469155219}
   bound: 3000
-  trackingThreshold: 6.9
+  trackingThreshold: 10
   hp: 100
   isDead: 0
   _ID: 
