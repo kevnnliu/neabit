@@ -6362,7 +6362,7 @@ MonoBehaviour:
   reticleFar: {fileID: 4455478135271301759}
   interior: {fileID: 981665063469155219}
   bound: 3000
-  trackingThreshold: 10
+  trackingThreshold: 6.9
   hp: 100
   isDead: 0
   _ID: 

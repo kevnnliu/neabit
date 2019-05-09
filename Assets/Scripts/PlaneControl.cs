@@ -99,7 +99,6 @@ public class PlaneControl : NetworkBehaviour
     }
     
     void Update() {
-        Debug.Log(Time.deltaTime);
         if (this.isLocalPlayer) {
             OVRInput.Update();
 
@@ -130,7 +129,7 @@ public class PlaneControl : NetworkBehaviour
                 }
 
                 if (Input.GetKeyDown(KeyCode.Q)) {
-                    keyboardControl = true;
+                    keyboardControl = !keyboardControl;
                 }
 
                 bool tracking = false;

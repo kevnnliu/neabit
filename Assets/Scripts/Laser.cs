@@ -13,26 +13,27 @@ public class Laser : NetworkBehaviour
     [SyncVar]
     public string owner;
 
-    private Rigidbody rb;
     private float lifeTime;
 
     // Start is called before the first frame update
     void Start()
     {
-        rb = GetComponent<Rigidbody>();
         lifeTime = 3.0f;
     }
 
     // Update is called once per frame
     void Update()
     {
+        if (this.isLocalPlayer) {
+            Debug.Log("local");
+        }
         lifeTime -= Time.deltaTime;
         if (lifeTime <= 0) {
             Destroy(this.gameObject);
         }
         RaycastHit hit;
-        if (Physics.Raycast(rb.position - (transform.forward * 4), transform.forward, 
-                                out hit, rb.velocity.magnitude * Time.fixedDeltaTime)) {
+        if (Physics.Raycast(transform.position - (transform.forward * 4), transform.forward, 
+                                out hit, laserSpeed * Time.fixedDeltaTime)) {
             Transform tr = hit.transform;
             if (tr.tag == "Player") {
                 if (tr.gameObject.GetComponent<PlaneControl>()._ID != owner) {
@@ -43,23 +44,22 @@ public class Laser : NetworkBehaviour
                 CmdDestroy(this.gameObject);
             }
         }
-    }
-
-    void FixedUpdate() {
         if (tracking) {
-            rb.velocity = Vector3.Normalize(trackedTarget.transform.position - transform.position)
-                             * laserSpeed;
+            transform.position += Vector3.Normalize(trackedTarget.transform.position - transform.position)
+                                                     * laserSpeed * Time.deltaTime;
+            transform.rotation = Quaternion.LookRotation(transform.forward);
         } else {
-            rb.velocity = transform.forward * laserSpeed;
+            transform.position += transform.forward * laserSpeed * Time.deltaTime;
+            transform.rotation = Quaternion.LookRotation(transform.forward);
         }
         if (isServer) {
-            RpcUpdateVector(rb.velocity, transform.rotation);
+            RpcUpdateVector(transform.rotation, transform.position);
         }
     }
 
     [ClientRpc]
-    void RpcUpdateVector(Vector3 rbvel, Quaternion rotation) {
-        rb.velocity = rbvel;
+    void RpcUpdateVector(Quaternion rotation, Vector3 position) {
+        transform.position = position;
         transform.rotation = rotation;
     }
 
