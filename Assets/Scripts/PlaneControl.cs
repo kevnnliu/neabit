@@ -25,6 +25,7 @@ public class PlaneControl : NetworkBehaviour
     public GameObject interior;
     public float bound;
     public float trackingThreshold;
+    public Ping serverPing;
 
     [SyncVar]
     public float hp;
@@ -96,11 +97,17 @@ public class PlaneControl : NetworkBehaviour
         }
 
         trackingCalculation();
+
+        serverPing = new Ping("127.0.0.1");
     }
     
     void Update() {
         if (this.isLocalPlayer) {
             OVRInput.Update();
+
+            if (serverPing.isDone) {
+                //serverLag = serverPing.time;
+            }
 
             if (Mathf.Abs(transform.position.x) > bound || Mathf.Abs(transform.position.y) > bound
                     || Mathf.Abs(transform.position.z) > bound) {
@@ -327,7 +334,7 @@ public class PlaneControl : NetworkBehaviour
         Vector3 position = new Vector3(gunFireSide * 3, 0.3f, 8);
         Quaternion rotation = transform.rotation;
 
-        if (!isServer) { // predicts where laser should be, ideally serverLag is updated in real time
+        if (isServer) { // predicts where laser should be, ideally serverLag is updated in real time
             Vector3 shipPosition = transform.position + rb.velocity * serverLag;
             Quaternion shipRotation = Quaternion.Euler(rb.angularVelocity * serverLag)
                                          * transform.rotation;

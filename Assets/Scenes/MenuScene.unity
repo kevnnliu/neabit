@@ -177,7 +177,7 @@ MonoBehaviour:
   - {fileID: 9073130967879404148, guid: da282432c17994ebb812dcef8fce24e7, type: 3}
   - {fileID: 9073130967879404148, guid: 79ae3e9de5e77d14cabbc2fec954550a, type: 3}
   - {fileID: 1000010608846784, guid: 6747b1742d70743a8aff8594e708b2f7, type: 3}
-  m_CustomConfig: 0
+  m_CustomConfig: 1
   m_MaxConnections: 4
   m_ConnectionConfig:
     m_PacketSize: 1440
@@ -219,7 +219,7 @@ MonoBehaviour:
     m_MaxTimerTimeout: 12000
     m_MinNetSimulatorTimeout: 1
     m_MaxNetSimulatorTimeout: 12000
-  m_Channels: 0500000000000000
+  m_Channels: 0400000000000000
   m_UseWebSockets: 0
   m_UseSimulator: 0
   m_SimulatedLatency: 1
@@ -404,6 +404,10 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 100000, guid: 9751ba5149e174f93bab447c5a3f2b3e, type: 3}
+      propertyPath: m_Name
+      value: Blue Fighter Model
+      objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: 9751ba5149e174f93bab447c5a3f2b3e, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -459,10 +463,6 @@ PrefabInstance:
     - target: {fileID: 400000, guid: 9751ba5149e174f93bab447c5a3f2b3e, type: 3}
       propertyPath: m_LocalScale.z
       value: 5
-      objectReference: {fileID: 0}
-    - target: {fileID: 100000, guid: 9751ba5149e174f93bab447c5a3f2b3e, type: 3}
-      propertyPath: m_Name
-      value: Blue Fighter Model
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 9751ba5149e174f93bab447c5a3f2b3e, type: 3}
