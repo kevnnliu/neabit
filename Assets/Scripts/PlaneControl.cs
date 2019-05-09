@@ -160,7 +160,13 @@ public class PlaneControl : NetworkBehaviour
                         if (tracking) {
                             rate = 0.5f;
                         }
-                        shoot(rate, inSights && tracking, trackingTarget);
+                        fireRate = rate;
+                        if (gunFireSide > 0) {
+                            rightLaser.Play();
+                        } else {
+                            leftLaser.Play();
+                        }
+                        CmdShoot(rate, inSights && tracking, trackingTarget, gunFireSide, _ID == "Player 2");
                         gunFireSide *= -1;
                     }
                 } else {
@@ -192,7 +198,13 @@ public class PlaneControl : NetworkBehaviour
                         if (tracking) {
                             rate = 0.5f;
                         }
-                        shoot(rate, inSights && tracking, trackingTarget);
+                        fireRate = rate;
+                        if (gunFireSide > 0) {
+                            rightLaser.Play();
+                        } else {
+                            leftLaser.Play();
+                        }
+                        CmdShoot(rate, inSights && tracking, trackingTarget, gunFireSide, _ID == "Player 2");
                         gunFireSide *= -1;
                     }
                 }
@@ -327,30 +339,42 @@ public class PlaneControl : NetworkBehaviour
         return Mathf.Max(value - Mathf.Abs(delta) * Time.deltaTime, target);
     }
 
-    [Client]
-    void shoot(float rate, bool shouldTrack, GameObject trackTarget) {
-        fireRate = rate;
-        if (gunFireSide > 0) {
-            rightLaser.Play();
+    [Command]
+    void CmdShoot(float rate, bool shouldTrack, GameObject trackTarget, float gunSide, bool red) {
+        if (red) {
+            RpcShootRed(_ID, shouldTrack, trackTarget, gunSide);
         } else {
-            leftLaser.Play();
+            RpcShootBlue(_ID, shouldTrack, trackTarget, gunSide);
         }
-        Vector3 position = new Vector3(gunFireSide * 3, 0.3f, 8);
-        Quaternion rotation = transform.rotation;
+    }
 
-        if (!isServer) { // predicts where laser should be, ideally serverLag is updated in real time
-            Vector3 shipPosition = transform.position + (rb.velocity * serverLag);
-            Quaternion shipRotation = Quaternion.Euler(rb.angularVelocity * serverLag * 2) * transform.rotation;
-            position = shipPosition + (shipRotation * position);
-            rotation *= shipRotation;
-        } else {
-            position = transform.position + (transform.rotation * position);
+    [ClientRpc]
+    void RpcShootBlue(string playerID, bool shouldTrack, GameObject trackTarget, float gunSide) {
+        Vector3 position = new Vector3(gunSide * 3, 0.3f, 8);
+        position = transform.position + (transform.rotation * position);
+
+        GameObject laser = Instantiate(blueLaserPrefab, position, transform.rotation);
+
+        Laser laserComponent = laser.GetComponent<Laser>();
+        laserComponent.owner = playerID;
+        laserComponent.tracking = shouldTrack;
+        if (shouldTrack) {
+            laserComponent.trackedTarget = trackTarget;
         }
+    }
 
-        if (_ID == "Player 1") {
-            CmdShootBlue(position, rotation, shouldTrack, trackTarget); // two versions because spawnable prefabs (don't clean)
-        } else {
-            CmdShootRed(position, rotation, shouldTrack, trackTarget);
+    [ClientRpc]
+    void RpcShootRed(string playerID, bool shouldTrack, GameObject trackTarget, float gunSide) {
+        Vector3 position = new Vector3(gunSide * 3, 0.3f, 8);
+        position = transform.position + (transform.rotation * position);
+
+        GameObject laser = Instantiate(redLaserPrefab, position, transform.rotation);
+
+        Laser laserComponent = laser.GetComponent<Laser>();
+        laserComponent.owner = playerID;
+        laserComponent.tracking = shouldTrack;
+        if (shouldTrack) {
+            laserComponent.trackedTarget = trackTarget;
         }
     }
 
@@ -412,35 +436,10 @@ public class PlaneControl : NetworkBehaviour
     }
 
     [Command]
-    void CmdShootBlue(Vector3 position, Quaternion rotation, bool shouldTrack, GameObject trackTarget) {
-        GameObject laser = Instantiate(blueLaserPrefab, position, transform.rotation);
-        Laser laserComponent = laser.GetComponent<Laser>();
-        laserComponent.owner = _ID;
-        laserComponent.tracking = shouldTrack;
-        if (shouldTrack) {
-            laserComponent.trackedTarget = trackTarget;
-        }
-        NetworkServer.SpawnWithClientAuthority(laser, GetComponent<NetworkIdentity>().connectionToClient);
-    }
-
-    [Command]
-    void CmdShootRed(Vector3 position, Quaternion rotation, bool shouldTrack, GameObject trackTarget) {
-        GameObject laser = Instantiate(redLaserPrefab, position, transform.rotation);
-        Laser laserComponent = laser.GetComponent<Laser>();
-        laserComponent.owner = _ID;
-        laserComponent.tracking = shouldTrack;
-        if (shouldTrack) {
-            laserComponent.trackedTarget = trackTarget;
-        }
-        NetworkServer.SpawnWithClientAuthority(laser, GetComponent<NetworkIdentity>().connectionToClient);
-    }
-
-    [Command]
     public void CmdPlayerShot(float dmg, GameObject laser) {
         if (laser != null) {
             hp -= dmg;
         }
-        NetworkServer.Destroy(laser);
     }
 
     [Command]

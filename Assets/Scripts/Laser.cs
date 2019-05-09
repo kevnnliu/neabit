@@ -24,6 +24,9 @@ public class Laser : NetworkBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (owner == "") {
+            Destroy(this.gameObject);
+        }
         if (this.isLocalPlayer) {
             Debug.Log("local");
         }
@@ -39,9 +42,10 @@ public class Laser : NetworkBehaviour
                 if (tr.gameObject.GetComponent<PlaneControl>()._ID != owner) {
                     tr.gameObject.GetComponent<PlaneControl>().CmdPlayerShot(damage, this.gameObject);
                     Debug.Log("Damaged " + tr.gameObject.GetComponent<PlaneControl>()._ID);
+                    Destroy(this.gameObject);
                 }
             } else {
-                CmdDestroy(this.gameObject);
+                Destroy(this.gameObject);
             }
         }
         if (tracking) {
@@ -52,19 +56,5 @@ public class Laser : NetworkBehaviour
             transform.position += transform.forward * laserSpeed * Time.deltaTime;
             transform.rotation = Quaternion.LookRotation(transform.forward);
         }
-        if (isServer) {
-            RpcLaserUpdate(transform.position, transform.rotation);
-        }
-    }
-
-    [ClientRpc]
-    void RpcLaserUpdate(Vector3 position, Quaternion rotation) {
-        transform.position = position;
-        transform.rotation = rotation;
-    }
-
-    [Command]
-    public void CmdDestroy(GameObject go) {
-        NetworkServer.Destroy(go);
     }
 }
