@@ -6301,7 +6301,7 @@ GameObject:
   - component: {fileID: 5340004279620953261}
   - component: {fileID: 822872462906857820}
   - component: {fileID: 672681046309125717}
-  m_Layer: 2
+  m_Layer: 0
   m_Name: Fighter
   m_TagString: Player
   m_Icon: {fileID: 0}
@@ -6362,6 +6362,7 @@ MonoBehaviour:
   reticleFar: {fileID: 4455478135271301759}
   interior: {fileID: 981665063469155219}
   bound: 3000
+  trackingThreshold: 10
   hp: 100
   isDead: 0
   _ID: 

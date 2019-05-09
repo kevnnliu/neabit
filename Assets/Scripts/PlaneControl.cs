@@ -24,6 +24,7 @@ public class PlaneControl : NetworkBehaviour
     public GameObject reticleFar;
     public GameObject interior;
     public float bound;
+    public float trackingThreshold;
 
     [SyncVar]
     public float hp;
@@ -120,6 +121,12 @@ public class PlaneControl : NetworkBehaviour
             }
 
             if (!isDead) {
+                if (inSights) {
+                    reticleNear.GetComponentInChildren<Image>().color = Color.yellow;
+                } else {
+                    reticleNear.GetComponentInChildren<Image>().color = Color.white;
+                }
+
                 if (keyboardControl) {
                     pitchPosition = ShiftTowards(pitchPosition, Input.GetAxis("Pitch"), controlRate);
                     rollPosition = ShiftTowards(rollPosition, Input.GetAxis("Roll"), controlRate);
@@ -151,12 +158,6 @@ public class PlaneControl : NetworkBehaviour
                     }
                     if (OVRInput.Get(OVRInput.Button.SecondaryThumbstick)) {
                         pilotCamera.transform.localPosition += 0.1f * Vector3.down * Time.deltaTime;
-                    }
-
-                    if (inSights) {
-                        reticleNear.GetComponentInChildren<Image>().color = Color.yellow;
-                    } else {
-                        reticleNear.GetComponentInChildren<Image>().color = Color.white;
                     }
 
                     if (tracking) {
@@ -278,7 +279,7 @@ public class PlaneControl : NetworkBehaviour
                 }
                 Vector3 direction = p.transform.position - reticleNear.transform.position;
                 float angle = Vector3.Angle(direction, transform.forward);
-                if (angle < 5) {
+                if (angle < trackingThreshold) {
                     inSights = true;
                     Debug.Log("Target in sights");
                     break;
