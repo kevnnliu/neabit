@@ -23,3 +23,6 @@ sysinfo.txt
 # Custom Ignore Files
 *.blend1
 *.blend1.meta
+
+\.vs/neabit/v15/Server/sqlite3/
+\.vs
