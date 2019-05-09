@@ -55,6 +55,7 @@ public class PlaneControl : NetworkBehaviour
     private bool inSights;
     private float thrustMultiplier = 1;
     private GameObject trackingTarget;
+    private Vector3 calibration = Vector3.zero;
 
     // How much keyboard inputs affect controller (will not be necessary in VR)
     public float controlRate = 2;
@@ -154,9 +155,11 @@ public class PlaneControl : NetworkBehaviour
                     bool shooting = OVRInput.Get(OVRInput.Axis1D.SecondaryIndexTrigger) > 0.5;
 
                     if (OVRInput.Get(OVRInput.Button.PrimaryThumbstick)) {
+                        calibration += 0.1f * Vector3.up * Time.deltaTime;
                         pilotCamera.transform.localPosition += 0.1f * Vector3.up * Time.deltaTime;
                     }
                     if (OVRInput.Get(OVRInput.Button.SecondaryThumbstick)) {
+                        calibration += 0.1f * Vector3.down * Time.deltaTime;
                         pilotCamera.transform.localPosition += 0.1f * Vector3.down * Time.deltaTime;
                     }
 
@@ -383,6 +386,8 @@ public class PlaneControl : NetworkBehaviour
         CmdRestoreHealth();
         var spawn = NetworkManager.singleton.GetStartPosition();
         var newPlayer = (GameObject) Instantiate(NetworkManager.singleton.playerPrefab, spawn.position, spawn.rotation);
+        newPlayer.GetComponent<PlaneControl>().pilotCamera.transform.localPosition += calibration;
+        newPlayer.GetComponent<PlaneControl>().calibration = calibration;
         newPlayer.GetComponent<PlaneControl>().set_ID = _ID;
         NetworkServer.Destroy(this.gameObject);
         NetworkServer.ReplacePlayerForConnection(this.connectionToClient, newPlayer, this.playerControllerId);
