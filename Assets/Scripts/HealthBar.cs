@@ -2,9 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.Networking;
 
-public class HealthBar : NetworkBehaviour
+public class HealthBar : MonoBehaviour
 {
     public Image healthBar;
     public GameObject plane;

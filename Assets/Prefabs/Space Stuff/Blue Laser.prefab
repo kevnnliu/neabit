@@ -16,6 +16,7 @@ MonoBehaviour:
   laserSpeed: 1000
   tracking: 0
   trackedTarget: {fileID: 0}
+  ownerObject: {fileID: 0}
   owner: 
 --- !u!114 &515761297
 MonoBehaviour:

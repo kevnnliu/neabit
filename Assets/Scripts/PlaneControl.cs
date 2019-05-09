@@ -14,6 +14,7 @@ public class PlaneControl : NetworkBehaviour
     public GameObject redModel;
     public AudioSource thrusterSound;
     public AudioSource onHitSound;
+    public AudioSource onHitEnemySound;
     public GameObject explosionPrefab;
     public AudioSource leftLaser;
     public AudioSource rightLaser;
@@ -24,6 +25,7 @@ public class PlaneControl : NetworkBehaviour
     public GameObject reticleNear;
     public GameObject reticleFar;
     public GameObject interior;
+    public GameObject hitMarkPrefab;
     public float bound;
     public float trackingThreshold;
     public float trackingRange;
@@ -165,7 +167,7 @@ public class PlaneControl : NetworkBehaviour
                         } else {
                             leftLaser.Play();
                         }
-                        CmdShoot(rate, inSights && tracking, trackingTarget, gunFireSide, _ID == "Player 2");
+                        CmdShoot(inSights && tracking, trackingTarget, gunFireSide, _ID == "Player 2", this.gameObject);
                         gunFireSide *= -1;
                     }
                 } else {
@@ -204,7 +206,7 @@ public class PlaneControl : NetworkBehaviour
                         } else {
                             leftLaser.Play();
                         }
-                        CmdShoot(rate, inSights && tracking, trackingTarget, gunFireSide, _ID == "Player 2");
+                        CmdShoot(inSights && tracking, trackingTarget, gunFireSide, _ID == "Player 2", this.gameObject);
                         gunFireSide *= -1;
                     }
                 }
@@ -332,6 +334,15 @@ public class PlaneControl : NetworkBehaviour
         }
     }
 
+    public void hitEnemy() {
+        if (isLocalPlayer) {
+            GameObject hM = Instantiate(hitMarkPrefab, reticleFar.transform.position, reticleFar.transform.rotation);
+            hM.transform.parent = reticleFar.transform;
+            hM.transform.localScale = Vector3.one;
+            onHitEnemySound.Play();
+        }
+    }
+
     // Updates a value towards a target value, with a maximum delta per second
     float ShiftTowards(float value, float target, float delta) {
         if (value < target) {
@@ -341,16 +352,16 @@ public class PlaneControl : NetworkBehaviour
     }
 
     [Command]
-    void CmdShoot(float rate, bool shouldTrack, GameObject trackTarget, float gunSide, bool red) {
+    void CmdShoot(bool shouldTrack, GameObject trackTarget, float gunSide, bool red, GameObject ownerObject) {
         if (red) {
-            RpcShootRed(_ID, shouldTrack, trackTarget, gunSide);
+            RpcShootRed(_ID, shouldTrack, trackTarget, gunSide, ownerObject);
         } else {
-            RpcShootBlue(_ID, shouldTrack, trackTarget, gunSide);
+            RpcShootBlue(_ID, shouldTrack, trackTarget, gunSide, ownerObject);
         }
     }
 
     [ClientRpc]
-    void RpcShootBlue(string playerID, bool shouldTrack, GameObject trackTarget, float gunSide) {
+    void RpcShootBlue(string playerID, bool shouldTrack, GameObject trackTarget, float gunSide, GameObject ownerObject) {
         Vector3 position = new Vector3(gunSide * 3, 0.3f, 8);
         position = transform.position + (transform.rotation * position);
 
@@ -359,13 +370,14 @@ public class PlaneControl : NetworkBehaviour
         Laser laserComponent = laser.GetComponent<Laser>();
         laserComponent.owner = playerID;
         laserComponent.tracking = shouldTrack;
+        laserComponent.ownerObject = ownerObject;
         if (shouldTrack) {
             laserComponent.trackedTarget = trackTarget;
         }
     }
 
     [ClientRpc]
-    void RpcShootRed(string playerID, bool shouldTrack, GameObject trackTarget, float gunSide) {
+    void RpcShootRed(string playerID, bool shouldTrack, GameObject trackTarget, float gunSide, GameObject ownerObject) {
         Vector3 position = new Vector3(gunSide * 3, 0.3f, 8);
         position = transform.position + (transform.rotation * position);
 
@@ -374,6 +386,7 @@ public class PlaneControl : NetworkBehaviour
         Laser laserComponent = laser.GetComponent<Laser>();
         laserComponent.owner = playerID;
         laserComponent.tracking = shouldTrack;
+        laserComponent.ownerObject = ownerObject;
         if (shouldTrack) {
             laserComponent.trackedTarget = trackTarget;
         }
@@ -440,9 +453,20 @@ public class PlaneControl : NetworkBehaviour
     public void CmdPlayerShot(float dmg, GameObject laser) {
         if (laser != null) {
             hp -= dmg;
-            GetComponentInChildren<HealthBar>().TakeDamage();
+            RpcGetHitEffect();
+            RpcHitEnemy(laser.GetComponent<Laser>().ownerObject);
             onHitSound.Play();
         }
+    }
+
+    [ClientRpc]
+    void RpcGetHitEffect() {
+        GetComponentInChildren<HealthBar>().TakeDamage();
+    }
+    
+    [ClientRpc]
+    void RpcHitEnemy(GameObject owner) {
+        owner.GetComponent<PlaneControl>().hitEnemy();
     }
 
     [Command]

@@ -19,7 +19,7 @@ public class SingleMarker : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (target == null || target == transform.root.gameObject) {
+        if (target == null || target == transform.root.gameObject || target.GetComponent<PlaneControl>().isDead == true) {
             Destroy(this.gameObject);
             Debug.Log(target + " destroyed");
         }

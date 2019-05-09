@@ -9,7 +9,9 @@ public class Laser : NetworkBehaviour
     public float laserSpeed;
     public bool tracking = false;
     public GameObject trackedTarget;
-    
+
+    [SyncVar]
+    public GameObject ownerObject;
     [SyncVar]
     public string owner;
 
