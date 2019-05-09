@@ -13,6 +13,7 @@ public class PlaneControl : NetworkBehaviour
     public GameObject blueModel;
     public GameObject redModel;
     public AudioSource thrusterSound;
+    public AudioSource onHitSound;
     public GameObject explosionPrefab;
     public AudioSource leftLaser;
     public AudioSource rightLaser;
@@ -439,6 +440,8 @@ public class PlaneControl : NetworkBehaviour
     public void CmdPlayerShot(float dmg, GameObject laser) {
         if (laser != null) {
             hp -= dmg;
+            GetComponentInChildren<HealthBar>().TakeDamage();
+            onHitSound.Play();
         }
     }
 
