@@ -25,7 +25,7 @@ public class PlaneControl : NetworkBehaviour
     public GameObject interior;
     public float bound;
     public float trackingThreshold;
-    public Ping serverPing;
+    public float trackingRange;
 
     [SyncVar]
     public float hp;
@@ -97,17 +97,11 @@ public class PlaneControl : NetworkBehaviour
         }
 
         trackingCalculation();
-
-        serverPing = new Ping("127.0.0.1");
     }
     
     void Update() {
         if (this.isLocalPlayer) {
             OVRInput.Update();
-
-            if (serverPing.isDone) {
-                //serverLag = serverPing.time;
-            }
 
             if (Mathf.Abs(transform.position.x) > bound || Mathf.Abs(transform.position.y) > bound
                     || Mathf.Abs(transform.position.z) > bound) {
@@ -312,7 +306,7 @@ public class PlaneControl : NetworkBehaviour
                 }
                 Vector3 direction = p.transform.position - reticleNear.transform.position;
                 float angle = Vector3.Angle(direction, transform.forward);
-                if (angle < trackingThreshold) {
+                if (angle < trackingThreshold && Vector3.Distance(p.transform.position, reticleNear.transform.position) < trackingRange) {
                     inSights = true;
                     trackingTarget = p.gameObject;
                     Debug.Log("Target in sights");
