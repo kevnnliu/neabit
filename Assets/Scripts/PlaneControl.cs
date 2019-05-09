@@ -270,20 +270,19 @@ public class PlaneControl : NetworkBehaviour
                 playerList.Add(go.GetComponent<PlaneControl>());
             }
         }
+        inSights = false;
         if (playerList.Count > 1) {
             foreach (PlaneControl p in playerList) {
-                if (p._ID != _ID) {
-                    trackingTarget = p.gameObject;
-                    RaycastHit hit;
-                    if (Physics.Raycast(reticleNear.transform.position
-                        , p.transform.position - reticleNear.transform.position, out hit, 3f)) {
-                        if (hit.transform.gameObject.name == "Reticle Far") {
-                            inSights = true;
-                            break;
-                        }
-                    }
+                if (p._ID == _ID) {
+                    continue;
                 }
-                inSights = false;
+                Vector3 direction = p.transform.position - reticleNear.transform.position;
+                float angle = Vector3.Angle(direction, transform.forward);
+                if (angle < 5) {
+                    inSights = true;
+                    Debug.Log("Target in sights");
+                    break;
+                }
             }
         }
     }
@@ -383,7 +382,6 @@ public class PlaneControl : NetworkBehaviour
         var spawn = NetworkManager.singleton.GetStartPosition();
         var newPlayer = (GameObject) Instantiate(NetworkManager.singleton.playerPrefab, spawn.position, spawn.rotation);
         newPlayer.GetComponent<PlaneControl>().set_ID = _ID;
-        newPlayer.GetComponent<PlaneControl>().pilotCamera.transform.localPosition = pilotCamera.transform.localPosition;
         NetworkServer.Destroy(this.gameObject);
         NetworkServer.ReplacePlayerForConnection(this.connectionToClient, newPlayer, this.playerControllerId);
     }
