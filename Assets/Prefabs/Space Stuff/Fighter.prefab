@@ -6356,7 +6356,7 @@ MonoBehaviour:
   rightLaser: {fileID: 2337687639198069503}
   keyboardControl: 0
   set_ID: 
-  serverLag: 5
+  serverLag: 1
   warning: {fileID: 4954054842182046188}
   reticleNear: {fileID: 4318754612409602808}
   reticleFar: {fileID: 4455478135271301759}

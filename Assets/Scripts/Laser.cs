@@ -52,6 +52,12 @@ public class Laser : NetworkBehaviour
         } else {
             rb.velocity = transform.forward * laserSpeed;
         }
+        RpcUpdate(rb.velocity);
+    }
+
+    [ClientRpc]
+    void RpcUpdate(Vector3 rbvel) {
+        rb.velocity = rbvel;
     }
 
     [Command]

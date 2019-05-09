@@ -281,6 +281,7 @@ public class PlaneControl : NetworkBehaviour
                 float angle = Vector3.Angle(direction, transform.forward);
                 if (angle < trackingThreshold) {
                     inSights = true;
+                    trackingTarget = p.gameObject;
                     Debug.Log("Target in sights");
                     break;
                 }
@@ -316,7 +317,7 @@ public class PlaneControl : NetworkBehaviour
         Vector3 position = new Vector3(gunFireSide * 3, 0.3f, 8);
         Quaternion rotation = transform.rotation;
 
-        if (!isServer) { // predicts where laser should be, ideally serverLag is updated in real time
+        if (isServer) { // predicts where laser should be, ideally serverLag is updated in real time
             Vector3 shipPosition = transform.position + rb.velocity * Time.deltaTime * serverLag;
             Quaternion shipRotation = Quaternion.Euler(rb.angularVelocity * Time.deltaTime * serverLag)
                                          * transform.rotation;
