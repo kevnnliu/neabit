@@ -389,6 +389,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   markerPrefab: {fileID: 1967838688394726208, guid: 3a892019f19fb82438462d2f86b1f9ed,
     type: 3}
+  numOfOthers: 0
 --- !u!1 &3355798158678219706
 GameObject:
   m_ObjectHideFlags: 0
@@ -6418,6 +6419,7 @@ MonoBehaviour:
   pitchRate: 40
   yawRate: 60
   rollRate: 40
+  verticalRate: 80
   controlRate: 8
 --- !u!54 &5340004279620953261
 Rigidbody:

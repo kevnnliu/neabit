@@ -41,12 +41,15 @@ public class PlaneControl : NetworkBehaviour
     public float pitchRate;
     public float yawRate;
     public float rollRate;
+    public float verticalRate;
 
     // SIMULATED CONTROLLER (Will be actual controller in VR)
     private float pitchPosition;
     private float rollPosition;
     private float yawPosition;
     private float throttlePosition;
+    
+    private float verticalPosition;
     private bool throttleInput;
     private bool brakeInput;
     private float fireRate;
@@ -139,6 +142,7 @@ public class PlaneControl : NetworkBehaviour
                     pitchPosition = ShiftTowards(pitchPosition, Input.GetAxis("Pitch"), controlRate);
                     rollPosition = ShiftTowards(rollPosition, Input.GetAxis("Roll"), controlRate);
                     yawPosition = ShiftTowards(yawPosition, Input.GetAxis("Yaw"), controlRate);
+                    verticalPosition = ShiftTowards(verticalPosition, Input.GetAxis("Vertical"), controlRate);
                     throttleInput = Input.GetKey(KeyCode.Space);
                     brakeInput = Input.GetKey(KeyCode.LeftShift);
                     tracking = Input.GetKey(KeyCode.U);
@@ -167,6 +171,7 @@ public class PlaneControl : NetworkBehaviour
                     pitchPosition = ShiftTowards(pitchPosition, OVRInput.Get(OVRInput.Axis2D.PrimaryThumbstick).y, controlRate);
                     rollPosition = ShiftTowards(rollPosition, OVRInput.Get(OVRInput.Axis2D.PrimaryThumbstick).x, controlRate);
                     yawPosition = ShiftTowards(yawPosition, OVRInput.Get(OVRInput.Axis2D.SecondaryThumbstick).x, controlRate);
+                    verticalPosition = ShiftTowards(verticalPosition, OVRInput.Get(OVRInput.Axis2D.SecondaryThumbstick).y, controlRate);
                     throttleInput = OVRInput.Get(OVRInput.Axis1D.PrimaryHandTrigger) > 0.5;
                     brakeInput = OVRInput.Get(OVRInput.Axis1D.PrimaryIndexTrigger) > 0.5;
                     tracking = OVRInput.Get(OVRInput.Axis1D.SecondaryHandTrigger) > 0.5;
@@ -245,6 +250,7 @@ public class PlaneControl : NetworkBehaviour
                 }
                 rb.AddRelativeTorque(new Vector3(pitchRate * pitchPosition, yawRate * yawPosition
                                         , -rollRate * rollPosition) * thrustMultiplier);
+                rb.AddRelativeForce(transform.up * verticalPosition * verticalRate);
                 if (throttleInput) {
                     rb.AddRelativeForce(0, 0, throttleCoeff * throttlePosition
                                          / thrustMultiplier / thrustMultiplier);
