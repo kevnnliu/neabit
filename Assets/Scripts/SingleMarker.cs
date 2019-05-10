@@ -36,7 +36,8 @@ public class SingleMarker : MonoBehaviour
             }
         }
 
-        transform.position = cameraPos + (Vector3.Normalize(targetDir) * radiusFromCamera);
-        transform.rotation = Quaternion.LookRotation(cameraPos - transform.position);
+        Vector3 offset = transform.root.transform.position + new Vector3(0, 0.3f, 5.3f);
+        transform.position = offset + (Vector3.Normalize(targetDir) * radiusFromCamera);
+        transform.rotation = Quaternion.LookRotation(offset - transform.position);
     }
 }

@@ -6,6 +6,7 @@ using UnityEngine.UI;
 public class PlaneControl : NetworkBehaviour
 {
     public GameObject pilotCamera;
+    public GameObject actualCamera;
     private Rigidbody rb;
     public GameObject blueLaserPrefab;
     public GameObject redLaserPrefab;
@@ -253,7 +254,7 @@ public class PlaneControl : NetworkBehaviour
                 }
                 rb.AddRelativeTorque(new Vector3(pitchRate * pitchPosition, yawRate * yawPosition
                                         , -rollRate * rollPosition) * thrustMultiplier);
-                rb.AddRelativeForce(transform.up * verticalPosition * verticalRate);
+                rb.AddRelativeForce(Vector3.up * verticalPosition * verticalRate);
                 if (throttleInput) {
                     rb.AddRelativeForce(0, 0, throttleCoeff * throttlePosition
                                          / thrustMultiplier / thrustMultiplier);
