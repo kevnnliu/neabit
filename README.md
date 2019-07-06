@@ -1,2 +1,2 @@
 # neabit
-A fighter spacecraft game in VR.
+A VR fighter spacecraft game.
