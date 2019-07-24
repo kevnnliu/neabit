@@ -1,2 +1,2 @@
 # neabit
-A VR fighter game made in Unity.
+A VR spacecraft game made in Unity.
