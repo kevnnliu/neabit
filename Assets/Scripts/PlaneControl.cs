@@ -6,7 +6,6 @@ using UnityEngine.UI;
 public class PlaneControl : NetworkBehaviour
 {
     public GameObject pilotCamera;
-    public GameObject actualCamera;
     private Rigidbody rb;
     public GameObject blueLaserPrefab;
     public GameObject redLaserPrefab;

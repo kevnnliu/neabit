@@ -28,7 +28,7 @@ public class EnemyMarkers : MonoBehaviour
                 playerList.Add(go.GetComponent<PlaneControl>());
             }
         }
-        Debug.Log(playerList.Count);
+        //Debug.Log(playerList.Count);
         if (playerList.Count - 1 > numOfOthers) {
             foreach (PlaneControl p in playerList) {
                 if (p._ID == _ID) {

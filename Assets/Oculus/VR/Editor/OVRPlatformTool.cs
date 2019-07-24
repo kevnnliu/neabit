@@ -1,5 +1,3 @@
-#define DISABLE_EXTRA_ASSET_CONFIG 
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -71,15 +69,20 @@ namespace Assets.Oculus.VR.Editor
 			// Get existing open window or if none, make a new one:
 			EditorWindow.GetWindow(typeof(OVRPlatformTool));
 
-			if (OVRPlatformToolSettings.TargetPlatform == TargetPlatform.None)
-			{
+			// Populate initial target platform value based on OVRDeviceSelector
 #if UNITY_ANDROID
-				OVRPlatformToolSettings.TargetPlatform = TargetPlatform.OculusGoGearVR;
-#else
-				OVRPlatformToolSettings.TargetPlatform = TargetPlatform.Rift;
-#endif
-				EditorUtility.SetDirty(OVRPlatformToolSettings.Instance);
+			if (OVRDeviceSelector.isTargetDeviceQuest)
+			{
+				OVRPlatformToolSettings.TargetPlatform = TargetPlatform.Quest;
 			}
+			else
+			{
+				OVRPlatformToolSettings.TargetPlatform = TargetPlatform.OculusGoGearVR;
+			}
+#else
+			OVRPlatformToolSettings.TargetPlatform = TargetPlatform.Rift;
+#endif
+			EditorUtility.SetDirty(OVRPlatformToolSettings.Instance);
 
 			// If we are starting from a fresh instance of platform tool settings, load redist packages by calling list-redists in the CLI
 			if (OVRPlatformToolSettings.RiftRedistPackages.Count == 0)
@@ -109,6 +112,7 @@ namespace Assets.Oculus.VR.Editor
 
 			GUIContent TargetPlatformLabel = new GUIContent("Target Oculus Platform");
 			OVRPlatformToolSettings.TargetPlatform = (TargetPlatform)MakePopup(TargetPlatformLabel, (int)OVRPlatformToolSettings.TargetPlatform, platformOptions);
+			SetOVRProjectConfig(OVRPlatformToolSettings.TargetPlatform);
 			SetDirtyOnGUIChange();
 
 			commandMenuScroll = EditorGUILayout.BeginScrollView(commandMenuScroll, GUILayout.Height(Screen.height / 2));
@@ -351,6 +355,30 @@ namespace Assets.Oculus.VR.Editor
 			EditorGUILayout.EndScrollView();
 		}
 
+		private void SetOVRProjectConfig(TargetPlatform targetPlatform)
+		{
+#if UNITY_ANDROID
+
+			var targetDeviceTypes = new List<OVRProjectConfig.DeviceType>();
+
+			if (targetPlatform == TargetPlatform.Quest && !OVRDeviceSelector.isTargetDeviceQuest)
+			{
+				targetDeviceTypes.Add(OVRProjectConfig.DeviceType.Quest);
+			}
+			else if (targetPlatform == TargetPlatform.OculusGoGearVR && !OVRDeviceSelector.isTargetDeviceGearVrOrGo)
+			{
+				targetDeviceTypes.Add(OVRProjectConfig.DeviceType.GearVrOrGo);
+			}
+
+			if (targetDeviceTypes.Count != 0)
+			{
+				OVRProjectConfig projectConfig = OVRProjectConfig.GetProjectConfig();
+				projectConfig.targetDeviceTypes = targetDeviceTypes;
+				OVRProjectConfig.CommitProjectConfig(projectConfig);
+			}
+#endif
+		}
+
 		private void IncrementIndent()
 		{
 			EditorGUI.indentLevel++;
@@ -374,7 +402,7 @@ namespace Assets.Oculus.VR.Editor
 		{
 			string dataPath = Application.dataPath;
 			string toolPath = dataPath + "/Oculus/VR/Editor/Tools/";
-
+			
 			// If we already have a copy of the platform util, check if it needs to be updated
 			if (!ranSelfUpdate && File.Exists(toolPath + "ovr-platform-util.exe"))
 			{
@@ -480,7 +508,7 @@ namespace Assets.Oculus.VR.Editor
 			ovrPlatUtilProcess.OutputDataReceived += new DataReceivedEventHandler(
 				(s, e) =>
 				{
-					if (e.Data.Length != 0 && !e.Data.Contains("\u001b") && !e.Data.Contains("ID"))
+					if (e.Data != null && e.Data.Length != 0 && !e.Data.Contains("\u001b") && !e.Data.Contains("ID"))
 					{
 						// Get the name / ID pair from the CLI and create a redist package instance
 						string[] terms = e.Data.Split('|');
@@ -682,39 +710,39 @@ namespace Assets.Oculus.VR.Editor
 
 						if (config.required)
 						{
-							configParameters.Add("\"required\": true");
+							configParameters.Add("\\\"required\\\":true");
 						}
 						if (config.type > AssetConfig.AssetType.DEFAULT)
 						{
-							string typeCommand = "\"type\": ";
+							string typeCommand = "\\\"type\\\":";
 							switch (config.type)
 							{
 								case AssetConfig.AssetType.LANGUAGE_PACK:
-									configParameters.Add(typeCommand + "LANGUAGE_PACK");
+									configParameters.Add(typeCommand + "\\\"LANGUAGE_PACK\\\"");
 									break;
 								case AssetConfig.AssetType.STORE:
-									configParameters.Add(typeCommand + "STORE");
+									configParameters.Add(typeCommand + "\\\"STORE\\\"");
 									break;
 								default:
-									configParameters.Add(typeCommand + "DEFAULT");
+									configParameters.Add(typeCommand + "\\\"DEFAULT\\\"");
 									break;
 							}
 						}
 						if (!string.IsNullOrEmpty(config.sku))
 						{
-							configParameters.Add("\"sku\": " + config.sku);
+							configParameters.Add("\\\"sku\\\":\\\"" + config.sku + "\\\"");
 						}
 
 						if (configParameters.Count > 0)
 						{
-							string configString = "\"" + config.name + "\": {" + string.Join(",", configParameters.ToArray()) + "}";
+							string configString = "\\\"" + config.name + "\\\":{" + string.Join(",", configParameters.ToArray()) + "}";
 							assetConfigs.Add(configString);
 						}
 					}
 
 					if (assetConfigs.Count > 0)
 					{
-						command += " --asset_files_config='{" + string.Join(",", assetConfigs.ToArray()) + "}'";
+						command += " --asset_files_config {" + string.Join(",", assetConfigs.ToArray()) + "}";
 					}
 				}
 			}
@@ -932,7 +960,8 @@ namespace Assets.Oculus.VR.Editor
 			webRequest.downloadHandler = new DownloadHandlerFile(path);
 			// WWW request timeout in seconds
 			webRequest.timeout = 60;
-			yield return webRequest.SendWebRequest();
+			UnityWebRequestAsyncOperation webOp = webRequest.SendWebRequest();
+			while (!webOp.isDone) { }
 			if (webRequest.isNetworkError || webRequest.isHttpError)
 			{
 				var networkErrorMsg = "Failed to provision Oculus Platform Util\n";
@@ -944,6 +973,7 @@ namespace Assets.Oculus.VR.Editor
 				OVRPlatformTool.log = "Completed Provisioning Oculus Platform Util\n";
 			}
 			SetDirtyOnGUIChange();
+			yield return webOp;
 		}
 
 		private static void DrawAssetConfigList(Rect rect)
