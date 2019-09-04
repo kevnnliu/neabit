@@ -12,6 +12,13 @@ namespace com.tuth.neabit {
 
         #endregion
 
+        #region Private Fields
+
+        [SerializeField]
+        float boltSpeed;
+
+        #endregion
+
 	    #region MonoBehaviour CallBacks
 
         // Start is called before the first frame update
@@ -21,7 +28,7 @@ namespace com.tuth.neabit {
 
         // Update is called once per frame
         void Update() {
-            transform.position += transform.up * 25 * Time.deltaTime;
+            transform.position += transform.up * boltSpeed * Time.deltaTime;
         }
 
 	    #endregion
