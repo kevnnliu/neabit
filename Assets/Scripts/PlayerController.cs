@@ -1,25 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Photon.Pun;
 
 namespace com.tuth.neabit {
-    public class ViperController : MonoBehaviourPunCallbacks, IPunObservable {
-
-        #region IPunObservable implementation
-
-        public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info) {
-            if (stream.IsWriting) {
-                stream.SendNext(fired);
-                stream.SendNext(energy);
-            }
-            else {
-                this.fired = (bool)stream.ReceiveNext();
-                this.energy = (float)stream.ReceiveNext();
-            }
-        }
-
-        #endregion
+    public class PlayerController : MonoBehaviour {
 
         #region Private Serializable Fields
 
@@ -41,20 +25,11 @@ namespace com.tuth.neabit {
         [SerializeField]
         float yawRate;
 
-        [SerializeField]
-        GameObject boltPrefab;
-
         #endregion
 
         #region Private Fields
 
-        bool fired;
-
-        #endregion
-
-        #region Public Fields
-
-        public float energy = 100f;
+        PlayerManager playerManager;
 
         #endregion
 
@@ -62,23 +37,19 @@ namespace com.tuth.neabit {
 
         // Start is called before the first frame update
         void Start() {
-            
+            playerManager = GetComponent<PlayerManager>();
+            rb = GetComponent<Rigidbody>();
         }
 
         // Update is called once per frame
         void Update() {
             if (Input.GetKeyDown(KeyCode.M)) {
-                Instantiate(boltPrefab, transform.position, transform.rotation);
+                playerManager.fire();
             }
         }
 
         void FixedUpdate() {
-            if (photonView.IsMine == false && PhotonNetwork.IsConnected == true) {
-                return;
-            }
-
-            #region Movement Inputs
-
+            
             if (Input.GetKey(KeyCode.Space)) {
                 rb.AddRelativeForce(Vector3.up * mainThruster, ForceMode.Acceleration);
             }
@@ -105,18 +76,6 @@ namespace com.tuth.neabit {
             }
             if (Input.GetKey(KeyCode.E)) {
                 rb.AddRelativeTorque(Vector3.forward * pitchRate, ForceMode.Acceleration);
-            }
-
-            #endregion
-        }
-
-        void OnTriggerEnter(Collider other) {
-            if (!photonView.IsMine) {
-                return;
-            }
-            if (other.CompareTag("Bolt")) {
-                energy -= 20;
-                Destroy(other.gameObject);
             }
         }
 

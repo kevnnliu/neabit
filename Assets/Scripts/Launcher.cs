@@ -83,9 +83,9 @@ namespace com.tuth.neabit {
             Debug.Log("OnJoinedRoom() called by PUN");
 
             if (PhotonNetwork.CurrentRoom.PlayerCount == 1) {
-                Debug.Log("Load 'Room for 1'");
+                Debug.Log("Load 'NetworkScene'");
 
-                PhotonNetwork.LoadLevel("Room for 1");
+                PhotonNetwork.LoadLevel("NetworkScene");
             }
         }
 

@@ -96,6 +96,7 @@ GameObject:
   - component: {fileID: 9044572377363543035}
   - component: {fileID: 1514367676292445960}
   - component: {fileID: 6431173172659863659}
+  - component: {fileID: 8013361554796872956}
   - component: {fileID: 8941876801094764701}
   - component: {fileID: 7967567195747299207}
   m_Layer: 0
@@ -211,16 +212,29 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eeb0abaf171eccf4ebf4f6f12f213336, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rb: {fileID: 1514367676292445960}
-  mainThruster: 9
-  verticalThruster: 6
-  pitchRate: 5
-  rollRate: 5
-  yawRate: 5
-  camObject: {fileID: 1185713274}
   boltPrefab: {fileID: 1982739440847619191, guid: 1fb0b71b43ac38a4ba82bc81fc491476,
     type: 3}
   energy: 100
+  PlayerUIPrefab: {fileID: 5232973073397647973, guid: ab61a8f718a0dea41a19959928fe25fd,
+    type: 3}
+--- !u!114 &8013361554796872956
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2589789965412945657}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c3cba7d222725f14f9b77ecae14c8120, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  rb: {fileID: 1514367676292445960}
+  mainThruster: 9
+  verticalThruster: 6
+  pitchRate: 3
+  rollRate: 3
+  yawRate: 3
 --- !u!114 &8941876801094764701
 MonoBehaviour:
   m_ObjectHideFlags: 0

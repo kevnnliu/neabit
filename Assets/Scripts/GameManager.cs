@@ -8,6 +8,33 @@ using Photon.Realtime;
 namespace com.tuth.neabit {
     public class GameManager : MonoBehaviourPunCallbacks {
 
+        #region Public Fields
+
+        public static GameManager Instance;
+        public GameObject playerPrefab;
+
+        #endregion
+
+        #region MonoBehaviour CallBacks
+
+        void Start() {
+            Instance = this;
+            if (playerPrefab == null) {
+                Debug.LogError("<Color=Red><a>Missing</a></Color> playerPrefab reference", this);
+            }
+            else {
+                if (PlayerManager.LocalPlayerInstance == null) {
+                    Debug.LogFormat("Instatiating local player from {0}", SceneManagerHelper.ActiveSceneName);
+                    PhotonNetwork.Instantiate(this.playerPrefab.name, new Vector3(0f, 5f, 0f), Quaternion.Euler(-90, 0, 0), 0);
+                }
+                else {
+                    Debug.LogFormat("Ignoring scene load for {0}", SceneManagerHelper.ActiveSceneName);
+                }
+            }
+        }
+
+        #endregion
+
         #region Photon Callbacks
 
         public override void OnLeftRoom() {
@@ -20,42 +47,6 @@ namespace com.tuth.neabit {
 
         public void LeaveRoom() {
             PhotonNetwork.LeaveRoom();
-        }
-
-        #endregion
-
-        #region Private Methods
-
-        void LoadArena() {
-            if (!PhotonNetwork.IsMasterClient) {
-                Debug.LogError("Trying to load level but not master client");
-            }
-            Debug.LogFormat("PhotonNetwork : Loading Level : {0}", PhotonNetwork.CurrentRoom.PlayerCount);
-            PhotonNetwork.LoadLevel("Room for " + PhotonNetwork.CurrentRoom.PlayerCount);
-        }
-
-        #endregion
-
-        #region Photon Callbacks
-
-        public override void OnPlayerEnteredRoom(Player newPlayer) {
-            Debug.LogFormat("OnPlayerEnteredRoom() {0}", newPlayer.NickName);
-
-            if (PhotonNetwork.IsMasterClient) {
-                Debug.LogFormat("OnPlayerEnteredRoom IsMasterClient {0}", PhotonNetwork.IsMasterClient);
-
-                LoadArena();
-            }
-        }
-
-        public override void OnPlayerLeftRoom(Player otherPlayer) {
-            Debug.LogFormat("OnPlayerLeftRoom() {0}", otherPlayer.NickName);
-
-            if (PhotonNetwork.IsMasterClient) {
-                Debug.LogFormat("OnPlayerLeftRoom IsMasterCLient {0}", PhotonNetwork.IsMasterClient);
-
-                LoadArena();
-            }
         }
 
         #endregion
