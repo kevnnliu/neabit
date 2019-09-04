@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 1185713276}
   - component: {fileID: 1185713275}
   m_Layer: 0
-  m_Name: Camera
+  m_Name: Player Camera
   m_TagString: MainCamera
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -214,6 +214,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   boltPrefab: {fileID: 1982739440847619191, guid: 1fb0b71b43ac38a4ba82bc81fc491476,
     type: 3}
+  playerCamera: {fileID: 1185713274}
   energy: 100
   PlayerUIPrefab: {fileID: 5232973073397647973, guid: ab61a8f718a0dea41a19959928fe25fd,
     type: 3}
@@ -232,9 +233,9 @@ MonoBehaviour:
   rb: {fileID: 1514367676292445960}
   mainThruster: 9
   verticalThruster: 6
-  pitchRate: 3
-  rollRate: 3
-  yawRate: 3
+  pitchRate: 1.5
+  rollRate: 1.5
+  yawRate: 1.5
 --- !u!114 &8941876801094764701
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -21,14 +21,13 @@ namespace com.tuth.neabit {
 
         #endregion
 
-        #region Private Serializable Fields
+        #region Private Fields
 
         [SerializeField]
         GameObject boltPrefab;
 
-        #endregion
-
-        #region Private Fields
+        [SerializeField]
+        GameObject playerCamera;
 
         bool isFiring;
         PlayerController playerController;
@@ -70,6 +69,7 @@ namespace com.tuth.neabit {
         void Update() {
             if (photonView.IsMine == false && PhotonNetwork.IsConnected == true) {
                 playerController.enabled = false;
+                playerCamera.SetActive(false);
             }
             if (energy <= 0) {
                 GameManager.Instance.LeaveRoom();
