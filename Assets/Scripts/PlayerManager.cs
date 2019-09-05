@@ -38,7 +38,6 @@ namespace com.tuth.neabit {
 
         public float energy = 100f;
         public static GameObject LocalPlayerInstance;
-        public GameObject PlayerUIPrefab;
 
         #endregion
 
@@ -55,14 +54,6 @@ namespace com.tuth.neabit {
         // Start is called before the first frame update
         void Start() {
             playerController = GetComponent<PlayerController>();
-
-            if (PlayerUIPrefab != null) {
-                GameObject _uiGo = Instantiate(PlayerUIPrefab);
-                _uiGo.SendMessage("SetTarget", this, SendMessageOptions.RequireReceiver);
-            }
-            else {
-                Debug.LogWarning("<Color=Red><a>Missing</a></Color> PlayerUIPrefab reference", this);
-            }
         }
 
         // Update is called once per frame
