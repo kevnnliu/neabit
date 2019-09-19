@@ -5,25 +5,55 @@ using UnityEngine;
 namespace com.tuth.neabit {
     public class PlayerController : MonoBehaviour {
 
-        #region Private Serializable Fields
+        #region Private Serialize Fields
 
         [SerializeField]
         Rigidbody rb;
 
         [SerializeField]
-        float mainThruster;
+        float maxThrust;
 
         [SerializeField]
-        float verticalThruster;
+        float thrust;
 
         [SerializeField]
-        float pitchRate;
+        float thrustRate;
+
+        [SerializeField]
+        float maxVThrust;
+
+        [SerializeField]
+        float vThrust;
+
+        [SerializeField]
+        float vThrustRate;
+
+        [SerializeField]
+        float maxYaw;
+
+        [SerializeField]
+        float yaw;
+
+        [SerializeField]
+        float yawRate;
+
+        [SerializeField]
+        float maxRoll;
+
+        [SerializeField]
+        float roll;
 
         [SerializeField]
         float rollRate;
 
         [SerializeField]
-        float yawRate;
+        float maxPitch;
+
+        [SerializeField]
+        float pitch;
+
+        [SerializeField]
+        float pitchRate;
 
         #endregion
 
@@ -32,6 +62,8 @@ namespace com.tuth.neabit {
         PlayerManager playerManager;
 
         #endregion
+
+        public static bool KEYBOARD_CONTROL = true;
 
         #region MonoBehaviour CallBacks
 
@@ -46,37 +78,36 @@ namespace com.tuth.neabit {
             if (Input.GetKeyDown(KeyCode.M)) {
                 playerManager.fire();
             }
+
+            CrossPlatformInputs movementInputs = GetInputs();
+        }
+        
+        #endregion
+
+        #region Private Methods
+
+        struct CrossPlatformInputs {
+            bool isThrusting { get; }
+            float isVThrusting { get; }
+            float isRolling { get; }
+            float isPitching { get; }
+            float isYawing { get; }
+            public CrossPlatformInputs(bool iT, float iV, float iR, float iP, float iY) {
+                isThrusting = iT;
+                isVThrusting = iV;
+                isRolling = iR;
+                isPitching = iP;
+                isYawing = iY;
+            }
         }
 
-        void FixedUpdate() {
-            
-            if (Input.GetKey(KeyCode.Space)) {
-                rb.AddRelativeForce(Vector3.up * mainThruster, ForceMode.Acceleration);
-            }
-            if (Input.GetKey(KeyCode.LeftShift)) {
-                rb.AddRelativeForce(Vector3.forward * verticalThruster, ForceMode.Acceleration);
-            }
-            if (Input.GetKey(KeyCode.LeftControl)) {
-                rb.AddRelativeForce(Vector3.back * verticalThruster, ForceMode.Acceleration);
-            }
-            if (Input.GetKey(KeyCode.W)) {
-                rb.AddRelativeTorque(Vector3.left * pitchRate, ForceMode.Acceleration);
-            }
-            if (Input.GetKey(KeyCode.S)) {
-                rb.AddRelativeTorque(Vector3.right * pitchRate, ForceMode.Acceleration);
-            }
-            if (Input.GetKey(KeyCode.A)) {
-                rb.AddRelativeTorque(Vector3.up * rollRate, ForceMode.Acceleration);
-            }
-            if (Input.GetKey(KeyCode.D)) {
-                rb.AddRelativeTorque(Vector3.down * rollRate, ForceMode.Acceleration);
-            }
-            if (Input.GetKey(KeyCode.Q)) {
-                rb.AddRelativeTorque(Vector3.back * pitchRate, ForceMode.Acceleration);
-            }
-            if (Input.GetKey(KeyCode.E)) {
-                rb.AddRelativeTorque(Vector3.forward * pitchRate, ForceMode.Acceleration);
-            }
+        CrossPlatformInputs GetInputs() {
+            bool iT = KEYBOARD_CONTROL ? Input.GetKey(KeyCode.Space) : Input.GetAxis("Oculus_CrossPlatform_PrimaryHandTrigger") > 0.3f;
+            float iV = KEYBOARD_CONTROL ? Input.GetAxis("VerticalAlt") : Input.GetAxis("Oculus_CrossPlatform_SecondaryThumbstickVertical");
+            float iR = KEYBOARD_CONTROL ? Input.GetAxis("Horizontal") : Input.GetAxis("Oculus_CrossPlatform_PrimaryThumbstickHorizontal");
+            float iP = KEYBOARD_CONTROL ? Input.GetAxis("Vertical") : Input.GetAxis("Oculus_CrossPlatform_PrimaryThumbstickVertical");
+            float iY = KEYBOARD_CONTROL ? Input.GetAxis("HorizontalAlt") : Input.GetAxis("Oculus_CrossPlatform_SecondaryThumbstickHorizontal");
+            return new CrossPlatformInputs(iT, iV, iR, iP, iY);
         }
 
         #endregion

@@ -216,8 +216,6 @@ MonoBehaviour:
     type: 3}
   playerCamera: {fileID: 1185713274}
   energy: 100
-  PlayerUIPrefab: {fileID: 5232973073397647973, guid: ab61a8f718a0dea41a19959928fe25fd,
-    type: 3}
 --- !u!114 &8013361554796872956
 MonoBehaviour:
   m_ObjectHideFlags: 0
