@@ -14,46 +14,19 @@ namespace com.tuth.neabit {
         float maxThrust;
 
         [SerializeField]
-        float thrust;
-
-        [SerializeField]
         float thrustRate;
 
         [SerializeField]
         float maxVThrust;
 
         [SerializeField]
-        float vThrust;
-
-        [SerializeField]
-        float vThrustRate;
-
-        [SerializeField]
         float maxYaw;
-
-        [SerializeField]
-        float yaw;
-
-        [SerializeField]
-        float yawRate;
 
         [SerializeField]
         float maxRoll;
 
         [SerializeField]
-        float roll;
-
-        [SerializeField]
-        float rollRate;
-
-        [SerializeField]
         float maxPitch;
-
-        [SerializeField]
-        float pitch;
-
-        [SerializeField]
-        float pitchRate;
 
         #endregion
 
@@ -61,9 +34,16 @@ namespace com.tuth.neabit {
 
         PlayerManager playerManager;
 
+        float thrust;
+        float vThrustRate;
+        float yawRate;
+        float rollRate;
+        float pitchRate;
+
         #endregion
 
         public static bool KEYBOARD_CONTROL = true;
+        public static bool ASSISTED_CONTROL = false;
 
         #region MonoBehaviour CallBacks
 
@@ -79,21 +59,51 @@ namespace com.tuth.neabit {
                 playerManager.fire();
             }
 
-            CrossPlatformInputs movementInputs = GetInputs();
+            // main thrusting is independent of control scheme
+            bool isThrusting = KEYBOARD_CONTROL ? Input.GetKey(KeyCode.Space) : handTriggerAverage() > 0.3f;
+            thrust += thrustProcessing(isThrusting, thrustRate);
+            thrust = Mathf.Clamp(thrust, 0, maxThrust);
+
+            if (ASSISTED_CONTROL) {
+                
+                AssistedInputs movementInputs = GetAssistedMovementInputs();
+
+
+
+            } else { // manual control scheme
+
+                ManualInputs movementInputs = GetManualMovementInputs();
+
+                // vertical thrusters
+                vThrustRate = inputSmoothing(movementInputs.isVThrusting) * maxVThrust;
+
+                // angular floats
+                rollRate = inputSmoothing(movementInputs.isRolling) * maxRoll;
+                yawRate = inputSmoothing(movementInputs.isYawing) * maxYaw;
+                pitchRate = -inputSmoothing(movementInputs.isPitching) * maxPitch; // inverted pitch
+
+                // input output
+                transform.Translate( ( (Vector3.up * thrust) + (Vector3.forward * vThrustRate) ) * Time.deltaTime ); // extra spaces for readability
+                transform.Rotate(new Vector3(pitchRate, -rollRate, yawRate) * Time.deltaTime); // rollRate needs to be inverted here, probably because prefab rotations
+
+            }
+        }
+
+        private void OnCollisionEnter(Collision other)
+        {
+            rb.angularVelocity = Vector3.zero; // stops violent rotations from collisions
         }
         
         #endregion
 
         #region Private Methods
 
-        struct CrossPlatformInputs {
-            bool isThrusting { get; }
-            float isVThrusting { get; }
-            float isRolling { get; }
-            float isPitching { get; }
-            float isYawing { get; }
-            public CrossPlatformInputs(bool iT, float iV, float iR, float iP, float iY) {
-                isThrusting = iT;
+        struct ManualInputs {
+            public float isVThrusting { get; }
+            public float isRolling { get; }
+            public float isPitching { get; }
+            public float isYawing { get; }
+            public ManualInputs(float iV, float iR, float iP, float iY) {
                 isVThrusting = iV;
                 isRolling = iR;
                 isPitching = iP;
@@ -101,13 +111,65 @@ namespace com.tuth.neabit {
             }
         }
 
-        CrossPlatformInputs GetInputs() {
-            bool iT = KEYBOARD_CONTROL ? Input.GetKey(KeyCode.Space) : Input.GetAxis("Oculus_CrossPlatform_PrimaryHandTrigger") > 0.3f;
-            float iV = KEYBOARD_CONTROL ? Input.GetAxis("VerticalAlt") : Input.GetAxis("Oculus_CrossPlatform_SecondaryThumbstickVertical");
-            float iR = KEYBOARD_CONTROL ? Input.GetAxis("Horizontal") : Input.GetAxis("Oculus_CrossPlatform_PrimaryThumbstickHorizontal");
-            float iP = KEYBOARD_CONTROL ? Input.GetAxis("Vertical") : Input.GetAxis("Oculus_CrossPlatform_PrimaryThumbstickVertical");
-            float iY = KEYBOARD_CONTROL ? Input.GetAxis("HorizontalAlt") : Input.GetAxis("Oculus_CrossPlatform_SecondaryThumbstickHorizontal");
-            return new CrossPlatformInputs(iT, iV, iR, iP, iY);
+        ManualInputs GetManualMovementInputs() {
+            float iV = KEYBOARD_CONTROL ? Input.GetAxis("VerticalAlt") : OVRInput.Get(OVRInput.Axis2D.SecondaryThumbstick).y;
+            float iR = KEYBOARD_CONTROL ? Input.GetAxis("Horizontal") : OVRInput.Get(OVRInput.Axis2D.PrimaryThumbstick).x;
+            float iP = KEYBOARD_CONTROL ? Input.GetAxis("Vertical") : OVRInput.Get(OVRInput.Axis2D.PrimaryThumbstick).y;
+            float iY = KEYBOARD_CONTROL ? Input.GetAxis("HorizontalAlt") : OVRInput.Get(OVRInput.Axis2D.SecondaryThumbstick).x;
+            return new ManualInputs(iV, iR, iP, iY);
+        }
+
+        struct AssistedInputs {
+            public float isBanking { get; }
+            public float isPitching { get; }
+            public AssistedInputs(float iB, float iP) {
+                isBanking = iB;
+                isPitching = iP;
+            }
+        }
+
+        AssistedInputs GetAssistedMovementInputs() {
+            float maxBank = 60;
+            Vector3 leftTouchP = OVRInput.GetLocalControllerPosition(OVRInput.Controller.LTouch);
+            Vector3 rightTouchP = OVRInput.GetLocalControllerPosition(OVRInput.Controller.RTouch);
+
+            float iB = calculateBank(leftTouchP, rightTouchP, maxBank);
+            float iP = calculatePitch(leftTouchP, rightTouchP);
+
+            return new AssistedInputs(iB, iP);
+        }
+
+        // input processing, apply polynomial for control smoothing
+        float inputSmoothing(float input) {
+            return Mathf.Sign(input) * Mathf.Pow(Mathf.Abs(input), 2); // returns squared and signed input
+        }
+
+        float thrustProcessing(bool isThrusting, float rate) {
+            if (isThrusting) {
+                return rate;
+            } else {
+                return -rate;
+            }
+        }
+
+        float handTriggerAverage() {
+            return 0.5f * ( OVRInput.Get(OVRInput.Axis1D.PrimaryHandTrigger) + OVRInput.Get(OVRInput.Axis1D.SecondaryHandTrigger) );
+        }
+
+        // for assisted control scheme
+        float calculateBank(Vector3 leftTouchP, Vector3 rightTouchP, float maxBank) {
+            float euclidean = Vector3.Distance(leftTouchP, rightTouchP);
+            float vDist = leftTouchP.y - rightTouchP.y;
+
+            float angle = Mathf.Asin(vDist / euclidean) * Mathf.Rad2Deg;
+
+            return Mathf.Clamp(angle, -maxBank, maxBank) / maxBank;
+        }
+
+        // for assisted control scheme
+        float calculatePitch(Vector3 leftTouchP, Vector3 rightTouchP) {
+            Vector3 averageP = 0.5f * (leftTouchP + rightTouchP);
+            OVRInput.
         }
 
         #endregion
