@@ -8,6 +8,15 @@ namespace com.tuth.neabit {
         #region Private Serialize Fields
 
         [SerializeField]
+        GameObject headTrack;
+
+        [SerializeField]
+        GameObject leftTrack;
+
+        [SerializeField]
+        GameObject rightTrack;
+
+        [SerializeField]
         Rigidbody rb;
 
         [SerializeField]
@@ -28,6 +37,9 @@ namespace com.tuth.neabit {
         [SerializeField]
         float maxPitch;
 
+        [SerializeField]
+        float maxAssistedTheta;
+
         #endregion
 
         #region Private Fields
@@ -39,11 +51,16 @@ namespace com.tuth.neabit {
         float yawRate;
         float rollRate;
         float pitchRate;
+        Vector3 playerRotation; // for custom rotation processing
 
         #endregion
 
-        public static bool KEYBOARD_CONTROL = true;
-        public static bool ASSISTED_CONTROL = false;
+        #region Static Variables
+
+        bool KEYBOARD_CONTROL = true;
+        bool ASSISTED_CONTROL = true;
+
+        #endregion
 
         #region MonoBehaviour CallBacks
 
@@ -51,11 +68,22 @@ namespace com.tuth.neabit {
         void Start() {
             playerManager = GetComponent<PlayerManager>();
             rb = GetComponent<Rigidbody>();
+            playerRotation = transform.rotation.eulerAngles;
         }
 
         // Update is called once per frame
         void Update() {
-            if (Input.GetKeyDown(KeyCode.M)) {
+            
+            // control scheme switch
+            if (Input.GetKeyDown(KeyCode.Q)) {
+                KEYBOARD_CONTROL = !KEYBOARD_CONTROL;
+            }
+            if (Input.GetKeyDown(KeyCode.E) || OVRInput.GetDown(OVRInput.Button.PrimaryThumbstick)) {
+                ASSISTED_CONTROL = !ASSISTED_CONTROL;
+            }
+
+            // networked firing
+            if (Input.GetKeyDown(KeyCode.M) || OVRInput.Get(OVRInput.Axis1D.SecondaryIndexTrigger) > 0.3f) {
                 playerManager.fire();
             }
 
@@ -63,12 +91,21 @@ namespace com.tuth.neabit {
             bool isThrusting = KEYBOARD_CONTROL ? Input.GetKey(KeyCode.Space) : handTriggerAverage() > 0.3f;
             thrust += thrustProcessing(isThrusting, thrustRate);
             thrust = Mathf.Clamp(thrust, 0, maxThrust);
+            Vector3 thrustVector = Vector3.up * thrust;
 
             if (ASSISTED_CONTROL) {
                 
                 AssistedInputs movementInputs = GetAssistedMovementInputs();
 
+                // input output
+                transform.Translate(thrustVector * Time.deltaTime);
 
+                // custom rotation processing, keeps track of rotation separately from offsets
+                float actualTurnRate = (movementInputs.isBanking / maxAssistedTheta) * maxPitch;
+                playerRotation += new Vector3(0f, 0f, actualTurnRate) * Time.deltaTime;
+                transform.rotation = Quaternion.Euler(playerRotation + new Vector3(-90, 0f, 0f));
+                Vector3 offset = new Vector3(-movementInputs.isPitching, -movementInputs.isBanking, 0f);
+                transform.Rotate(offset);
 
             } else { // manual control scheme
 
@@ -76,6 +113,10 @@ namespace com.tuth.neabit {
 
                 // vertical thrusters
                 vThrustRate = inputSmoothing(movementInputs.isVThrusting) * maxVThrust;
+                Vector3 vThrustVector = Vector3.forward * vThrustRate;
+
+                // thrust sum
+                Vector3 combinedThrustVector = thrustVector + vThrustVector;
 
                 // angular floats
                 rollRate = inputSmoothing(movementInputs.isRolling) * maxRoll;
@@ -83,7 +124,7 @@ namespace com.tuth.neabit {
                 pitchRate = -inputSmoothing(movementInputs.isPitching) * maxPitch; // inverted pitch
 
                 // input output
-                transform.Translate( ( (Vector3.up * thrust) + (Vector3.forward * vThrustRate) ) * Time.deltaTime ); // extra spaces for readability
+                transform.Translate(combinedThrustVector * Time.deltaTime);
                 transform.Rotate(new Vector3(pitchRate, -rollRate, yawRate) * Time.deltaTime); // rollRate needs to be inverted here, probably because prefab rotations
 
             }
@@ -129,12 +170,14 @@ namespace com.tuth.neabit {
         }
 
         AssistedInputs GetAssistedMovementInputs() {
-            float maxBank = 60;
-            Vector3 leftTouchP = OVRInput.GetLocalControllerPosition(OVRInput.Controller.LTouch);
-            Vector3 rightTouchP = OVRInput.GetLocalControllerPosition(OVRInput.Controller.RTouch);
+            Vector3 leftTouchP = leftTrack.transform.localPosition;
+            Vector3 rightTouchP = rightTrack.transform.localPosition;
+            Vector3 headP = headTrack.transform.localPosition;
 
-            float iB = calculateBank(leftTouchP, rightTouchP, maxBank);
-            float iP = calculatePitch(leftTouchP, rightTouchP);
+            Vector3 averageHandP = 0.5f * (leftTouchP + rightTouchP);
+
+            float iB = KEYBOARD_CONTROL ? Input.GetAxis("Horizontal") * maxAssistedTheta : calculateTheta(leftTouchP, rightTouchP, maxAssistedTheta);
+            float iP = KEYBOARD_CONTROL ? Input.GetAxis("Vertical") * maxAssistedTheta : calculateTheta(averageHandP, headP, maxAssistedTheta);
 
             return new AssistedInputs(iB, iP);
         }
@@ -157,19 +200,13 @@ namespace com.tuth.neabit {
         }
 
         // for assisted control scheme
-        float calculateBank(Vector3 leftTouchP, Vector3 rightTouchP, float maxBank) {
-            float euclidean = Vector3.Distance(leftTouchP, rightTouchP);
-            float vDist = leftTouchP.y - rightTouchP.y;
+        float calculateTheta(Vector3 a, Vector3 b, float maxTheta) {
+            float euclidean = Vector3.Distance(a, b);
+            float vDist = a.y - b.y;
 
             float angle = Mathf.Asin(vDist / euclidean) * Mathf.Rad2Deg;
 
-            return Mathf.Clamp(angle, -maxBank, maxBank) / maxBank;
-        }
-
-        // for assisted control scheme
-        float calculatePitch(Vector3 leftTouchP, Vector3 rightTouchP) {
-            Vector3 averageP = 0.5f * (leftTouchP + rightTouchP);
-            OVRInput.
+            return -Mathf.Clamp(angle, -maxTheta, maxTheta);
         }
 
         #endregion
