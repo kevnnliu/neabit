@@ -8,16 +8,10 @@ namespace com.tuth.neabit {
         #region Private Serialize Fields
 
         [SerializeField]
-        GameObject wrapper;
+        GameObject cameraAnchor;
 
         [SerializeField]
-        GameObject headTrack;
-
-        [SerializeField]
-        GameObject leftTrack;
-
-        [SerializeField]
-        GameObject rightTrack;
+        GameObject rigPrefab;
 
         [SerializeField]
         Rigidbody rb;
@@ -55,13 +49,17 @@ namespace com.tuth.neabit {
         float rollRate;
         float pitchRate;
         Vector3 playerRotation; // for custom rotation processing
+        GameObject headTrack;
+        GameObject leftTrack;
+        GameObject rightTrack;
+        RigWrapper playerRig;
 
         #endregion
 
-        #region Static Variables
+        #region Public Fields
 
-        bool KEYBOARD_CONTROL = false;
-        bool ASSISTED_CONTROL = true;
+        public bool KEYBOARD_CONTROL = false;
+        public bool ASSISTED_CONTROL = true;
 
         #endregion
 
@@ -72,6 +70,15 @@ namespace com.tuth.neabit {
             playerManager = GetComponent<PlayerManager>();
             rb = GetComponent<Rigidbody>();
             playerRotation = transform.rotation.eulerAngles;
+
+            // setting up camera rig
+            GameObject playerCamera = Instantiate(rigPrefab, transform.position, Quaternion.identity);
+            playerRig = playerCamera.GetComponent<RigWrapper>();
+            headTrack = playerRig.headTrack;
+            leftTrack = playerRig.leftTrack;
+            rightTrack = playerRig.rightTrack;
+            GetComponent<PlayerManager>().playerCamera = playerCamera;
+            playerRig.anchor = cameraAnchor.transform;
         }
 
         // Update is called once per frame
@@ -86,7 +93,7 @@ namespace com.tuth.neabit {
             }
 
             // networked firing
-            if (Input.GetKeyDown(KeyCode.M) || OVRInput.Get(OVRInput.Axis1D.SecondaryIndexTrigger) > 0.3f) {
+            if (Input.GetKeyDown(KeyCode.M) || OVRInput.GetDown(OVRInput.Button.SecondaryIndexTrigger)) {
                 playerManager.fire();
             }
 
@@ -95,8 +102,6 @@ namespace com.tuth.neabit {
             thrust += thrustProcessing(isThrusting, thrustRate);
             thrust = Mathf.Clamp(thrust, 0, maxThrust);
             Vector3 thrustVector = Vector3.up * thrust;
-
-            wrapper.transform.localRotation = Quaternion.Euler(-90f, 90f, 90f);
 
             if (ASSISTED_CONTROL) {
                 
@@ -114,6 +119,7 @@ namespace com.tuth.neabit {
                 transform.rotation = Quaternion.Euler(playerRotation + new Vector3(-90, 0f, 0f));
                 Vector3 offset = new Vector3(-movementInputs.isPitching, -movementInputs.isBanking, 0f);
                 transform.Rotate(offset);
+                playerRig.anchorYaw = Quaternion.Euler(0f, playerRotation.z + 180f, 0f);
 
             } else { // manual control scheme
 

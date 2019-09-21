@@ -26,9 +26,6 @@ namespace com.tuth.neabit {
         [SerializeField]
         GameObject boltPrefab;
 
-        [SerializeField]
-        GameObject playerCamera;
-
         bool isFiring;
         PlayerController playerController;
 
@@ -38,6 +35,7 @@ namespace com.tuth.neabit {
 
         public float energy = 100f;
         public static GameObject LocalPlayerInstance;
+        public GameObject playerCamera;
 
         #endregion
 
