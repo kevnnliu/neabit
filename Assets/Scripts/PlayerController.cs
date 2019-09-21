@@ -96,7 +96,7 @@ namespace com.tuth.neabit {
             thrust = Mathf.Clamp(thrust, 0, maxThrust);
             Vector3 thrustVector = Vector3.up * thrust;
 
-            wrapper.transform.localRotation = Quaternion.Euler(0f, 90f, 90f);
+            wrapper.transform.localRotation = Quaternion.Euler(-90f, 90f, 90f);
 
             if (ASSISTED_CONTROL) {
                 
