@@ -8,6 +8,9 @@ namespace com.tuth.neabit {
         #region Private Serialize Fields
 
         [SerializeField]
+        GameObject wrapper;
+
+        [SerializeField]
         GameObject headTrack;
 
         [SerializeField]
@@ -57,7 +60,7 @@ namespace com.tuth.neabit {
 
         #region Static Variables
 
-        bool KEYBOARD_CONTROL = true;
+        bool KEYBOARD_CONTROL = false;
         bool ASSISTED_CONTROL = true;
 
         #endregion
@@ -93,6 +96,8 @@ namespace com.tuth.neabit {
             thrust = Mathf.Clamp(thrust, 0, maxThrust);
             Vector3 thrustVector = Vector3.up * thrust;
 
+            wrapper.transform.localRotation = Quaternion.Euler(0f, 90f, 90f);
+
             if (ASSISTED_CONTROL) {
                 
                 AssistedInputs movementInputs = GetAssistedMovementInputs();
@@ -102,6 +107,9 @@ namespace com.tuth.neabit {
 
                 // custom rotation processing, keeps track of rotation separately from offsets
                 float actualTurnRate = (movementInputs.isBanking / maxAssistedTheta) * maxPitch;
+                if (float.IsNaN(actualTurnRate)) {
+                    actualTurnRate = 0;
+                }
                 playerRotation += new Vector3(0f, 0f, actualTurnRate) * Time.deltaTime;
                 transform.rotation = Quaternion.Euler(playerRotation + new Vector3(-90, 0f, 0f));
                 Vector3 offset = new Vector3(-movementInputs.isPitching, -movementInputs.isBanking, 0f);
@@ -175,9 +183,10 @@ namespace com.tuth.neabit {
             Vector3 headP = headTrack.transform.localPosition;
 
             Vector3 averageHandP = 0.5f * (leftTouchP + rightTouchP);
+            Vector3 shoulderOffset = new Vector3(0f, 0.4f, 0f);
 
-            float iB = KEYBOARD_CONTROL ? Input.GetAxis("Horizontal") * maxAssistedTheta : calculateTheta(leftTouchP, rightTouchP, maxAssistedTheta);
-            float iP = KEYBOARD_CONTROL ? Input.GetAxis("Vertical") * maxAssistedTheta : calculateTheta(averageHandP, headP, maxAssistedTheta);
+            float iB = KEYBOARD_CONTROL ? Input.GetAxis("Horizontal") * maxAssistedTheta : -calculateTheta(leftTouchP, rightTouchP, maxAssistedTheta);
+            float iP = KEYBOARD_CONTROL ? Input.GetAxis("Vertical") * maxAssistedTheta : calculateTheta(averageHandP, headP - shoulderOffset, maxAssistedTheta);
 
             return new AssistedInputs(iB, iP);
         }
