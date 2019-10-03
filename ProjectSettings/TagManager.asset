@@ -4,8 +4,8 @@
 TagManager:
   serializedVersion: 2
   tags:
-  - GlowyBois
   - Structure
+  - Bolt
   layers:
   - Default
   - TransparentFX
