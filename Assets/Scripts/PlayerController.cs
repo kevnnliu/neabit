@@ -35,7 +35,7 @@ namespace com.tuth.neabit {
         float maxPitch;
 
         [SerializeField]
-        float maxAssistedTheta;
+        float turnSensitivity;
 
         #endregion
 
@@ -48,7 +48,6 @@ namespace com.tuth.neabit {
         float yawRate;
         float rollRate;
         float pitchRate;
-        Vector3 playerRotation; // for custom rotation processing
         GameObject headTrack;
         GameObject leftTrack;
         GameObject rightTrack;
@@ -69,7 +68,6 @@ namespace com.tuth.neabit {
         void Start() {
             playerManager = GetComponent<PlayerManager>();
             rb = GetComponent<Rigidbody>();
-            playerRotation = transform.rotation.eulerAngles;
 
             // setting up camera rig
             GameObject playerCamera = Instantiate(rigPrefab, transform.position, Quaternion.identity);
@@ -110,16 +108,14 @@ namespace com.tuth.neabit {
                 // input output
                 transform.Translate(thrustVector * Time.deltaTime);
 
-                // custom rotation processing, keeps track of rotation separately from offsets
-                float actualTurnRate = (movementInputs.isBanking / maxAssistedTheta) * maxPitch;
-                if (float.IsNaN(actualTurnRate)) {
-                    actualTurnRate = 0;
-                }
-                playerRotation += new Vector3(0f, 0f, actualTurnRate) * Time.deltaTime;
-                transform.rotation = Quaternion.Euler(playerRotation + new Vector3(-90, 0f, 0f));
-                Vector3 offset = new Vector3(-movementInputs.isPitching, -movementInputs.isBanking, 0f);
-                transform.Rotate(offset);
-                playerRig.anchorYaw = Quaternion.Euler(0f, playerRotation.z + 180f, 0f);
+                // free rotation (unclamped)
+                float bankCoeff = inputSmoothing(-movementInputs.isBanking);
+                float yawCoeff = inputSmoothing(movementInputs.isYawing);
+                float pitchCoeff = inputSmoothing(-movementInputs.isPitching);
+                transform.RotateAround(transform.position, transform.up, bankCoeff * turnSensitivity * Time.deltaTime);
+                transform.RotateAround(transform.position, transform.forward, yawCoeff * turnSensitivity * Time.deltaTime);
+                transform.RotateAround(transform.position, transform.right, pitchCoeff * turnSensitivity * Time.deltaTime);
+                playerRig.anchorYaw = transform.rotation * Quaternion.Euler(-90f, -180f, 0f);
 
             } else { // manual control scheme
 
@@ -139,12 +135,17 @@ namespace com.tuth.neabit {
 
                 // input output
                 transform.Translate(combinedThrustVector * Time.deltaTime);
-                transform.Rotate(new Vector3(pitchRate, -rollRate, yawRate) * Time.deltaTime); // rollRate needs to be inverted here, probably because prefab rotations
+                transform.Rotate(new Vector3(pitchRate, -rollRate, yawRate) * Time.deltaTime);
 
             }
         }
 
         private void OnCollisionEnter(Collision other)
+        {
+            rb.angularVelocity = Vector3.zero; // stops violent rotations from collisions
+        }
+
+        private void OnCollisionExit(Collision other)
         {
             rb.angularVelocity = Vector3.zero; // stops violent rotations from collisions
         }
@@ -177,9 +178,11 @@ namespace com.tuth.neabit {
         struct AssistedInputs {
             public float isBanking { get; }
             public float isPitching { get; }
-            public AssistedInputs(float iB, float iP) {
+            public float isYawing { get; }
+            public AssistedInputs(float iB, float iP, float iY) {
                 isBanking = iB;
                 isPitching = iP;
+                isYawing = iY;
             }
         }
 
@@ -191,10 +194,11 @@ namespace com.tuth.neabit {
             Vector3 averageHandP = 0.5f * (leftTouchP + rightTouchP);
             Vector3 shoulderOffset = new Vector3(0f, 0.4f, 0f);
 
-            float iB = KEYBOARD_CONTROL ? Input.GetAxis("Horizontal") * maxAssistedTheta : -calculateTheta(leftTouchP, rightTouchP, maxAssistedTheta);
-            float iP = KEYBOARD_CONTROL ? Input.GetAxis("Vertical") * maxAssistedTheta : calculateTheta(averageHandP, headP - shoulderOffset, maxAssistedTheta);
+            float iB = KEYBOARD_CONTROL ? Input.GetAxis("Horizontal") * 90f : calculateTheta(leftTouchP, rightTouchP, false);
+            float iP = KEYBOARD_CONTROL ? Input.GetAxis("Vertical") * 90f : -calculateTheta(averageHandP, headP - shoulderOffset, false);
+            float iY = KEYBOARD_CONTROL ? Input.GetAxis("HorizontalAlt") * 90f : calculateTheta(averageHandP, headP - shoulderOffset, true);
 
-            return new AssistedInputs(iB, iP);
+            return new AssistedInputs(iB, iP, iY);
         }
 
         // input processing, apply polynomial for control smoothing
@@ -215,13 +219,13 @@ namespace com.tuth.neabit {
         }
 
         // for assisted control scheme
-        float calculateTheta(Vector3 a, Vector3 b, float maxTheta) {
+        float calculateTheta(Vector3 a, Vector3 b, bool yawCalc) {
             float euclidean = Vector3.Distance(a, b);
-            float vDist = a.y - b.y;
+            float vDist = yawCalc ? a.x - b.x : a.y - b.y;
 
             float angle = Mathf.Asin(vDist / euclidean) * Mathf.Rad2Deg;
 
-            return -Mathf.Clamp(angle, -maxTheta, maxTheta);
+            return Mathf.Clamp(angle, -90f, 90f);
         }
 
         #endregion
