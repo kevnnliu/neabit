@@ -52,6 +52,7 @@ namespace com.tuth.neabit {
         GameObject leftTrack;
         GameObject rightTrack;
         RigWrapper playerRig;
+        Vector3 combinedThrustVector;
 
         #endregion
 
@@ -106,15 +107,16 @@ namespace com.tuth.neabit {
                 AssistedInputs movementInputs = GetAssistedMovementInputs();
 
                 // input output
-                transform.Translate(thrustVector * Time.deltaTime);
+                combinedThrustVector = thrustVector;
+                transform.Translate(combinedThrustVector * Time.deltaTime);
 
                 // free rotation (unclamped)
-                float bankCoeff = inputSmoothing(-movementInputs.isBanking);
-                float yawCoeff = inputSmoothing(movementInputs.isYawing);
-                float pitchCoeff = inputSmoothing(-movementInputs.isPitching);
-                transform.RotateAround(transform.position, transform.up, bankCoeff * turnSensitivity * Time.deltaTime);
-                transform.RotateAround(transform.position, transform.forward, yawCoeff * turnSensitivity * Time.deltaTime);
-                transform.RotateAround(transform.position, transform.right, pitchCoeff * turnSensitivity * Time.deltaTime);
+                float bankCoeff = -movementInputs.isBanking * maxRoll * turnSensitivity;
+                float yawCoeff = movementInputs.isYawing * maxYaw * turnSensitivity;
+                float pitchCoeff = -movementInputs.isPitching * maxPitch * turnSensitivity;
+                transform.RotateAround(transform.position, transform.up, bankCoeff * Time.deltaTime);
+                transform.RotateAround(transform.position, transform.forward, yawCoeff * Time.deltaTime);
+                transform.RotateAround(transform.position, transform.right, pitchCoeff * Time.deltaTime);
                 playerRig.anchorYaw = transform.rotation * Quaternion.Euler(-90f, -180f, 0f);
 
             } else { // manual control scheme
@@ -126,7 +128,7 @@ namespace com.tuth.neabit {
                 Vector3 vThrustVector = Vector3.forward * vThrustRate;
 
                 // thrust sum
-                Vector3 combinedThrustVector = thrustVector + vThrustVector;
+                combinedThrustVector = thrustVector + vThrustVector;
 
                 // angular floats
                 rollRate = inputSmoothing(movementInputs.isRolling) * maxRoll;
@@ -143,6 +145,7 @@ namespace com.tuth.neabit {
         private void OnCollisionEnter(Collision other)
         {
             rb.angularVelocity = Vector3.zero; // stops violent rotations from collisions
+            combinedThrustVector = Vector3.zero;
         }
 
         private void OnCollisionExit(Collision other)
@@ -210,7 +213,7 @@ namespace com.tuth.neabit {
             if (isThrusting) {
                 return rate;
             } else {
-                return -rate;
+                return -rate * 2f;
             }
         }
 

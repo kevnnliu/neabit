@@ -154,10 +154,10 @@ MonoBehaviour:
   maxThrust: 778
   thrustRate: 4
   maxVThrust: 10
-  maxYaw: 45
+  maxYaw: 70
   maxRoll: 90
-  maxPitch: 75
-  turnSensitivity: 2.4
+  maxPitch: 85
+  turnSensitivity: 0.022
   KEYBOARD_CONTROL: 0
   ASSISTED_CONTROL: 1
 --- !u!114 &8941876801094764701
