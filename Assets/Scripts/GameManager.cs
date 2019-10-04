@@ -25,7 +25,7 @@ namespace com.tuth.neabit {
             else {
                 if (PlayerManager.LocalPlayerInstance == null) {
                     Debug.LogFormat("Instatiating local player from {0}", SceneManagerHelper.ActiveSceneName);
-                    PhotonNetwork.Instantiate(this.playerPrefab.name, new Vector3(0f, 5f, 0f), Quaternion.identity, 0);
+                    PhotonNetwork.Instantiate(this.playerPrefab.name, new Vector3(0f, 5f, 0f), Quaternion.Euler(-90f, 0f, 0f), 0);
                 }
                 else {
                     Debug.LogFormat("Ignoring scene load for {0}", SceneManagerHelper.ActiveSceneName);

@@ -158,7 +158,7 @@ MonoBehaviour:
   maxRoll: 90
   maxPitch: 85
   turnSensitivity: 0.022
-  KEYBOARD_CONTROL: 0
+  KEYBOARD_CONTROL: 1
   ASSISTED_CONTROL: 1
 --- !u!114 &8941876801094764701
 MonoBehaviour:
