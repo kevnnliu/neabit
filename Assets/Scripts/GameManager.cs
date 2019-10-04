@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.Events;
 using Photon.Pun;
 using Photon.Realtime;
 
@@ -12,6 +13,7 @@ namespace com.tuth.neabit {
 
         public static GameManager Instance;
         public GameObject playerPrefab;
+        public UnityEvent startRace;
 
         #endregion
 
@@ -24,7 +26,7 @@ namespace com.tuth.neabit {
             }
             else {
                 if (PlayerManager.LocalPlayerInstance == null) {
-                    Debug.LogFormat("Instatiating local player from {0}", SceneManagerHelper.ActiveSceneName);
+                    Debug.LogFormat("Instantiating local player from {0}", SceneManagerHelper.ActiveSceneName);
                     PhotonNetwork.Instantiate(this.playerPrefab.name, new Vector3(0f, 5f, 0f), Quaternion.Euler(-90f, 0f, 0f), 0);
                 }
                 else {
