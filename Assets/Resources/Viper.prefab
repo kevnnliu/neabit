@@ -160,6 +160,7 @@ MonoBehaviour:
   turnSensitivity: 0.022
   KEYBOARD_CONTROL: 1
   ASSISTED_CONTROL: 1
+  CONTROLS_ENABLED: 1
 --- !u!114 &8941876801094764701
 MonoBehaviour:
   m_ObjectHideFlags: 0

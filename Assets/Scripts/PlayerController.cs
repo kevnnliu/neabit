@@ -60,6 +60,7 @@ namespace com.tuth.neabit {
 
         public bool KEYBOARD_CONTROL = false;
         public bool ASSISTED_CONTROL = true;
+        public bool CONTROLS_ENABLED = true;
 
         #endregion
 
@@ -108,7 +109,9 @@ namespace com.tuth.neabit {
 
                 // input output
                 combinedThrustVector = thrustVector;
-                transform.Translate(combinedThrustVector * Time.deltaTime);
+                if (CONTROLS_ENABLED) {
+                    transform.Translate(combinedThrustVector * Time.deltaTime);
+                }
 
                 // free rotation (unclamped)
                 float bankCoeff = -movementInputs.isBanking * maxRoll * turnSensitivity;
@@ -136,7 +139,9 @@ namespace com.tuth.neabit {
                 pitchRate = -inputSmoothing(movementInputs.isPitching) * maxPitch; // inverted pitch
 
                 // input output
-                transform.Translate(combinedThrustVector * Time.deltaTime);
+                if (CONTROLS_ENABLED) {
+                    transform.Translate(combinedThrustVector * Time.deltaTime);
+                }
                 transform.Rotate(new Vector3(pitchRate, -rollRate, yawRate) * Time.deltaTime);
 
             }

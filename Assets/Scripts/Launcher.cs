@@ -90,8 +90,11 @@ namespace com.tuth.neabit {
         }
 
         public override void OnDisconnected(DisconnectCause cause) {
-            progressLabel.SetActive(false);
-            controlPanel.SetActive(true);
+            if (progressLabel != null && controlPanel != null) {
+                progressLabel.SetActive(false);
+                controlPanel.SetActive(true);
+                Debug.Log("UI elements successfully set");
+            }
             Debug.LogWarningFormat("OnDisconnect() called by PUN with reason {0}", cause);
         }
 

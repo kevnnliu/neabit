@@ -28,6 +28,7 @@ namespace com.tuth.neabit {
 
         bool isFiring;
         PlayerController playerController;
+        int playerNumber;
 
         #endregion
 
@@ -46,6 +47,10 @@ namespace com.tuth.neabit {
                 PlayerManager.LocalPlayerInstance = this.gameObject;
             }
 
+            playerNumber = PhotonNetwork.CurrentRoom.PlayerCount - 1;
+
+            Debug.Log("I am player number " + playerNumber + " and my user id is " + PhotonNetwork.LocalPlayer.UserId);
+
             DontDestroyOnLoad(this.gameObject);
         }
 
@@ -60,9 +65,6 @@ namespace com.tuth.neabit {
                 playerController.enabled = false;
                 playerCamera.SetActive(false);
             }
-            if (energy <= 0) {
-                GameManager.Instance.LeaveRoom();
-            }
         }
 
         void OnTriggerEnter(Collider other) {
@@ -70,8 +72,13 @@ namespace com.tuth.neabit {
                 return;
             }
             if (other.CompareTag("Bolt")) {
-                if (other.GetComponent<EMPBolt>().owner != this.gameObject) {
-                    energy -= 20;
+                EMPBolt bolt = other.GetComponent<EMPBolt>();
+                if (bolt.owner != this.gameObject) {
+                    if (energy - bolt.drain < 0) {
+                        energy = 0;
+                    } else {
+                        energy -= bolt.drain;
+                    }
                     PhotonNetwork.Destroy(other.gameObject);
                 }
             }
@@ -84,6 +91,21 @@ namespace com.tuth.neabit {
         public void fire() {
             GameObject bolt = PhotonNetwork.Instantiate(boltPrefab.name, transform.position, transform.rotation, 0);
             bolt.GetComponent<EMPBolt>().owner = this.gameObject;
+        }
+
+        public void prepRace() {
+            GameManager gm = GameObject.Find("Game Manager").GetComponent<GameManager>();
+            transform.position = gm.playerStarts[playerNumber].position;
+            transform.rotation = gm.playerStarts[playerNumber].rotation;
+
+            energy = 100;
+            isFiring = false;
+
+            GetComponent<PlayerController>().CONTROLS_ENABLED = false;
+        }
+
+        public void startRace() {
+            GetComponent<PlayerController>().CONTROLS_ENABLED = true;
         }
 
         #endregion
