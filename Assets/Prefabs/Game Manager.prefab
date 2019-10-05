@@ -45,7 +45,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerPrefab: {fileID: 2589789965412945657, guid: 090dc8774e24de64c8929d6256c76d57,
     type: 3}
-  playerStarts: []
+  playerStarts:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  isGame: 0
+  startCountdown: 0
   prepRace:
     m_PersistentCalls:
       m_Calls:

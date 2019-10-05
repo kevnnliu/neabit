@@ -28,7 +28,6 @@ namespace com.tuth.neabit {
 
         bool isFiring;
         PlayerController playerController;
-        int playerNumber;
 
         #endregion
 
@@ -37,6 +36,7 @@ namespace com.tuth.neabit {
         public float energy = 100f;
         public static GameObject LocalPlayerInstance;
         public GameObject playerCamera;
+        public bool CONTROLS_ENABLED = true;
 
         #endregion
 
@@ -46,10 +46,6 @@ namespace com.tuth.neabit {
             if (photonView.IsMine) {
                 PlayerManager.LocalPlayerInstance = this.gameObject;
             }
-
-            playerNumber = PhotonNetwork.CurrentRoom.PlayerCount - 1;
-
-            Debug.Log("I am player number " + playerNumber + " and my user id is " + PhotonNetwork.LocalPlayer.UserId);
 
             DontDestroyOnLoad(this.gameObject);
         }
@@ -81,6 +77,17 @@ namespace com.tuth.neabit {
                     }
                     PhotonNetwork.Destroy(other.gameObject);
                 }
+            } else if (other.CompareTag("Checkpoint")) {
+                Checkpoint checkpoint = other.GetComponent<Checkpoint>();
+                if (checkpoint.laps >= 3) {
+                    leaveGame();
+                } else {
+                    if (checkpoint.isEnabled) {
+                        checkpoint.isEnabled = false;
+                        checkpoint.nextCheckpoint.isEnabled = true;
+                        checkpoint.laps += 1;
+                    }
+                }
             }
         }
 
@@ -93,19 +100,12 @@ namespace com.tuth.neabit {
             bolt.GetComponent<EMPBolt>().owner = this.gameObject;
         }
 
-        public void prepRace() {
-            GameManager gm = GameObject.Find("Game Manager").GetComponent<GameManager>();
-            transform.position = gm.playerStarts[playerNumber].position;
-            transform.rotation = gm.playerStarts[playerNumber].rotation;
+        #endregion
 
-            energy = 100;
-            isFiring = false;
+        #region Private Methods
 
-            GetComponent<PlayerController>().CONTROLS_ENABLED = false;
-        }
-
-        public void startRace() {
-            GetComponent<PlayerController>().CONTROLS_ENABLED = true;
+        void leaveGame() {
+            GameObject.Find("Game Manager").GetComponent<GameManager>().LeaveRoom();
         }
 
         #endregion

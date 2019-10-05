@@ -14,6 +14,8 @@ namespace com.tuth.neabit {
         public static GameManager Instance;
         public GameObject playerPrefab;
         public Transform[] playerStarts;
+        public bool isGame = false;
+        public float startCountdown;
 
         #endregion
 
@@ -37,7 +39,10 @@ namespace com.tuth.neabit {
                 prepRace = new UnityEvent();
             }
 
-            prepRace.AddListener(setUpGame);
+            if (startRace == null) {
+                Debug.LogError("startRace() event is <Color=Red><a>null</a></Color>", this);
+                startRace = new UnityEvent();
+            }
 
             Instance = this;
             if (playerPrefab == null) {
@@ -54,12 +59,19 @@ namespace com.tuth.neabit {
             }
 
             currentRoom = PhotonNetwork.CurrentRoom;
+            startCountdown = 6;
+
+            // do we start the race?
+            if (currentRoom.Players.Count == currentRoom.MaxPlayers) {
+                prepareNewRace();
+            }
         }
 
         void Update() {
-            if (currentRoom.Players.Count == currentRoom.MaxPlayers) {
-                if (prepRace != null) {
-                    prepRace.Invoke();
+            if (isGame && startCountdown > 0) {
+                startCountdown -= Time.deltaTime;
+                if (startCountdown <= 0) {
+                    startNewRace();
                 }
             }
         }
@@ -85,8 +97,20 @@ namespace com.tuth.neabit {
 
         #region Private Methods
 
-        void setUpGame() {
-            
+        void prepareNewRace() {
+            isGame = true;
+
+            if (prepRace != null) {
+                prepRace.Invoke();
+            } else {
+                Debug.Log("Event prepRace is null!");
+            }
+        }
+
+        void startNewRace() {
+            if (startRace != null) {
+                startRace.Invoke();
+            }
         }
 
         #endregion
