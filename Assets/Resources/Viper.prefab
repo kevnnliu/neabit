@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 2127612509163057538}
   - component: {fileID: 7161152948646153352}
   - component: {fileID: 9044572377363543035}
+  - component: {fileID: 748429187522284912}
   - component: {fileID: 1514367676292445960}
   - component: {fileID: 6431173172659863659}
   - component: {fileID: 8013361554796872956}
@@ -98,11 +99,24 @@ MeshCollider:
   m_GameObject: {fileID: 2589789965412945657}
   m_Material: {fileID: 0}
   m_IsTrigger: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Convex: 1
   m_CookingOptions: 14
   m_Mesh: {fileID: 4300002, guid: 9751ba5149e174f93bab447c5a3f2b3e, type: 3}
+--- !u!65 &748429187522284912
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2589789965412945657}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 2.59, y: 3.26, z: 0.5}
+  m_Center: {x: 0, y: 0.0006790161, z: 0.14272001}
 --- !u!54 &1514367676292445960
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -112,13 +126,13 @@ Rigidbody:
   m_GameObject: {fileID: 2589789965412945657}
   serializedVersion: 2
   m_Mass: 1
-  m_Drag: 0.7
-  m_AngularDrag: 0.1
+  m_Drag: 0
+  m_AngularDrag: Infinity
   m_UseGravity: 0
   m_IsKinematic: 0
   m_Interpolate: 0
   m_Constraints: 0
-  m_CollisionDetection: 0
+  m_CollisionDetection: 3
 --- !u!114 &6431173172659863659
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -152,13 +166,15 @@ MonoBehaviour:
     type: 3}
   rb: {fileID: 1514367676292445960}
   maxThrust: 778
-  thrustRate: 4
+  thrustRate: 400
   maxVThrust: 10
   maxYaw: 70
   maxRoll: 90
   maxPitch: 85
   turnSensitivity: 0.022
-  KEYBOARD_CONTROL: 0
+  dragCoeff: 200
+  dragFactor: 2
+  KEYBOARD_CONTROL: 1
   ASSISTED_CONTROL: 1
 --- !u!114 &8941876801094764701
 MonoBehaviour:

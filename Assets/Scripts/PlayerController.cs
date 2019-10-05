@@ -37,22 +37,26 @@ namespace com.tuth.neabit {
         [SerializeField]
         float turnSensitivity;
 
+        // Physics
+
+        [SerializeField]
+        float dragCoeff;
+
+        [SerializeField]
+        float dragFactor;
+
         #endregion
 
         #region Private Fields
 
         PlayerManager playerManager;
-
-        float thrust;
-        float vThrustRate;
-        float yawRate;
-        float rollRate;
-        float pitchRate;
+        
         GameObject headTrack;
         GameObject leftTrack;
         GameObject rightTrack;
         RigWrapper playerRig;
-        Vector3 combinedThrustVector;
+
+        Inputs inputs;
 
         #endregion
 
@@ -96,100 +100,77 @@ namespace com.tuth.neabit {
                 playerManager.fire();
             }
 
-            // main thrusting is independent of control scheme
-            bool isThrusting = KEYBOARD_CONTROL ? Input.GetKey(KeyCode.Space) : handTriggerAverage() > 0.3f;
-            thrust += thrustProcessing(isThrusting, thrustRate);
-            thrust = Mathf.Clamp(thrust, 0, maxThrust);
-            Vector3 thrustVector = Vector3.up * thrust;
+            // Non-networked movement?
+            inputs = GetMovementInputs();
 
-            if (ASSISTED_CONTROL) {
-                
-                AssistedInputs movementInputs = GetAssistedMovementInputs();
+            rb.velocity = inputs.thrust ? 0.5f * (GetPhysicsMovement() + GetDesiredMovement()) : GetPhysicsMovement();
 
-                // input output
-                combinedThrustVector = thrustVector;
-                transform.Translate(combinedThrustVector * Time.deltaTime);
-
-                // free rotation (unclamped)
-                float bankCoeff = -movementInputs.isBanking * maxRoll * turnSensitivity;
-                float yawCoeff = movementInputs.isYawing * maxYaw * turnSensitivity;
-                float pitchCoeff = -movementInputs.isPitching * maxPitch * turnSensitivity;
-                transform.RotateAround(transform.position, transform.up, bankCoeff * Time.deltaTime);
-                transform.RotateAround(transform.position, transform.forward, yawCoeff * Time.deltaTime);
-                transform.RotateAround(transform.position, transform.right, pitchCoeff * Time.deltaTime);
-                playerRig.anchorYaw = transform.rotation * Quaternion.Euler(-90f, -180f, 0f);
-
-            } else { // manual control scheme
-
-                ManualInputs movementInputs = GetManualMovementInputs();
-
-                // vertical thrusters
-                vThrustRate = inputSmoothing(movementInputs.isVThrusting) * maxVThrust;
-                Vector3 vThrustVector = Vector3.forward * vThrustRate;
-
-                // thrust sum
-                combinedThrustVector = thrustVector + vThrustVector;
-
-                // angular floats
-                rollRate = inputSmoothing(movementInputs.isRolling) * maxRoll;
-                yawRate = inputSmoothing(movementInputs.isYawing) * maxYaw;
-                pitchRate = -inputSmoothing(movementInputs.isPitching) * maxPitch; // inverted pitch
-
-                // input output
-                transform.Translate(combinedThrustVector * Time.deltaTime);
-                transform.Rotate(new Vector3(pitchRate, -rollRate, yawRate) * Time.deltaTime);
-
-            }
+            Debug.Log(rb.velocity.magnitude);
+            
+            // free rotation (unclamped)
+            float rollCoeff = -inputs.roll * maxRoll * turnSensitivity;
+            float yawCoeff = inputs.yaw * maxYaw * turnSensitivity;
+            float pitchCoeff = -inputs.pitch * maxPitch * turnSensitivity;
+            transform.RotateAround(transform.position, transform.up, rollCoeff * Time.deltaTime);
+            transform.RotateAround(transform.position, transform.forward, yawCoeff * Time.deltaTime);
+            transform.RotateAround(transform.position, transform.right, pitchCoeff * Time.deltaTime);
+            playerRig.anchorYaw = transform.rotation * Quaternion.Euler(-90f, -180f, 0f);
         }
 
-        private void OnCollisionEnter(Collision other)
+        private void OnTriggerEnter(Collider other)
         {
-            rb.angularVelocity = Vector3.zero; // stops violent rotations from collisions
-            combinedThrustVector = Vector3.zero;
-        }
-
-        private void OnCollisionExit(Collision other)
-        {
-            rb.angularVelocity = Vector3.zero; // stops violent rotations from collisions
+            Debug.Log("Nice");
         }
         
         #endregion
 
         #region Private Methods
 
-        struct ManualInputs {
-            public float isVThrusting { get; }
-            public float isRolling { get; }
-            public float isPitching { get; }
-            public float isYawing { get; }
-            public ManualInputs(float iV, float iR, float iP, float iY) {
-                isVThrusting = iV;
-                isRolling = iR;
-                isPitching = iP;
-                isYawing = iY;
+        Vector3 GetPhysicsMovement()
+        {
+            Vector3 forward = Vector3.Project(rb.velocity, transform.up);
+            Vector3 normal = rb.velocity - forward;
+
+            float forwardDrag = inputs.thrust ? dragCoeff / dragFactor : dragCoeff;
+            float normalDrag = inputs.thrust ? dragCoeff * dragFactor : dragCoeff;
+
+            float fmag = Mathf.Clamp(forward.magnitude - forwardDrag * Time.deltaTime, 0, float.PositiveInfinity);
+            float nmag = Mathf.Clamp(normal.magnitude - normalDrag * Time.deltaTime, 0, float.PositiveInfinity);
+
+            forward = forward.normalized * fmag;
+            normal = normal.normalized * nmag;
+
+            return forward + normal;
+        }
+
+        Vector3 GetDesiredMovement()
+        {
+            Vector3 forward = Vector3.Project(rb.velocity, transform.up);
+
+            if (inputs.thrust)
+            {
+                float fmag = Mathf.Clamp(forward.magnitude + thrustRate * Time.deltaTime, 0, maxThrust);
+                forward = transform.up * fmag;
+            }
+
+            return forward;
+        }
+
+        struct Inputs {
+            public float roll;
+            public float pitch;
+            public float yaw;
+            public bool thrust;
+
+            public Inputs(float iR, float iP, float iY, bool iT) {
+                roll = iR;
+                pitch = iP;
+                yaw = iY;
+                thrust = iT;
             }
         }
 
-        ManualInputs GetManualMovementInputs() {
-            float iV = KEYBOARD_CONTROL ? Input.GetAxis("VerticalAlt") : OVRInput.Get(OVRInput.Axis2D.SecondaryThumbstick).y;
-            float iR = KEYBOARD_CONTROL ? Input.GetAxis("Horizontal") : OVRInput.Get(OVRInput.Axis2D.PrimaryThumbstick).x;
-            float iP = KEYBOARD_CONTROL ? Input.GetAxis("Vertical") : OVRInput.Get(OVRInput.Axis2D.PrimaryThumbstick).y;
-            float iY = KEYBOARD_CONTROL ? Input.GetAxis("HorizontalAlt") : OVRInput.Get(OVRInput.Axis2D.SecondaryThumbstick).x;
-            return new ManualInputs(iV, iR, iP, iY);
-        }
-
-        struct AssistedInputs {
-            public float isBanking { get; }
-            public float isPitching { get; }
-            public float isYawing { get; }
-            public AssistedInputs(float iB, float iP, float iY) {
-                isBanking = iB;
-                isPitching = iP;
-                isYawing = iY;
-            }
-        }
-
-        AssistedInputs GetAssistedMovementInputs() {
+        Inputs GetMovementInputs() {
             Vector3 leftTouchP = leftTrack.transform.localPosition;
             Vector3 rightTouchP = rightTrack.transform.localPosition;
             Vector3 headP = headTrack.transform.localPosition;
@@ -201,7 +182,13 @@ namespace com.tuth.neabit {
             float iP = KEYBOARD_CONTROL ? Input.GetAxis("Vertical") * 90f : -calculateTheta(averageHandP, headP - shoulderOffset, false);
             float iY = KEYBOARD_CONTROL ? Input.GetAxis("HorizontalAlt") * 90f : calculateTheta(averageHandP, headP - shoulderOffset, true);
 
-            return new AssistedInputs(iB, iP, iY);
+            bool iT = KEYBOARD_CONTROL ? Input.GetKey(KeyCode.Space) : handTriggerAverage() > 0.3f;
+
+            if (float.IsNaN(iB) || float.IsNaN(iP) || float.IsNaN(iY)) {
+                return new Inputs(0, 0, 0, false);
+            }
+
+            return new Inputs(iB, iP, iY, iT);
         }
 
         // input processing, apply polynomial for control smoothing
