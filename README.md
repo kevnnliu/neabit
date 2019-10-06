@@ -1,2 +1,2 @@
 # neabit
-Made with Unity.
+Made with Unity. Multiplayer implemented with Photon Unity Networking.
