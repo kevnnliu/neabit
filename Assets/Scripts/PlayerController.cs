@@ -58,6 +58,8 @@ namespace com.tuth.neabit {
 
         Inputs inputs;
 
+        float stunned;
+
         #endregion
 
         #region Public Fields
@@ -82,6 +84,10 @@ namespace com.tuth.neabit {
             rightTrack = playerRig.rightTrack;
             GetComponent<PlayerManager>().playerCamera = playerCamera;
             playerRig.anchor = cameraAnchor.transform;
+
+            //
+            stunned = 0;
+            rb.maxAngularVelocity = 0;
         }
 
         // Update is called once per frame
@@ -100,28 +106,72 @@ namespace com.tuth.neabit {
                 playerManager.fire();
             }
 
+            // Stun
+            stunned = Mathf.Clamp(stunned - Time.deltaTime, 0, 3600);
+
             // Non-networked movement?
             inputs = GetMovementInputs();
 
-            rb.velocity = inputs.thrust ? 0.5f * (GetPhysicsMovement() + GetDesiredMovement()) : GetPhysicsMovement();
-
-            Debug.Log(rb.velocity.magnitude);
+            if (stunned == 0 && inputs.thrust)
+            {
+                rb.velocity = Vector3.Lerp(GetPhysicsMovement(), GetDesiredMovement(), 0.5f);
+            }
+            else
+            {
+                rb.velocity = GetPhysicsMovement();
+            }
             
             // free rotation (unclamped)
-            float rollCoeff = -inputs.roll * maxRoll * turnSensitivity;
-            float yawCoeff = inputs.yaw * maxYaw * turnSensitivity;
-            float pitchCoeff = -inputs.pitch * maxPitch * turnSensitivity;
-            transform.RotateAround(transform.position, transform.up, rollCoeff * Time.deltaTime);
-            transform.RotateAround(transform.position, transform.forward, yawCoeff * Time.deltaTime);
-            transform.RotateAround(transform.position, transform.right, pitchCoeff * Time.deltaTime);
-            playerRig.anchorYaw = transform.rotation * Quaternion.Euler(-90f, -180f, 0f);
+            if (stunned == 0)
+            {
+                float rollCoeff = -inputs.roll * maxRoll * turnSensitivity;
+                float yawCoeff = inputs.yaw * maxYaw * turnSensitivity;
+                float pitchCoeff = -inputs.pitch * maxPitch * turnSensitivity;
+                transform.RotateAround(transform.position, transform.up, rollCoeff * Time.deltaTime);
+                transform.RotateAround(transform.position, transform.forward, yawCoeff * Time.deltaTime);
+                transform.RotateAround(transform.position, transform.right, pitchCoeff * Time.deltaTime);
+                playerRig.anchorYaw = transform.rotation * Quaternion.Euler(-90f, -180f, 0f);
+            }
+            else
+            {
+                // Stunned turning
+            }
         }
 
         private void OnTriggerEnter(Collider other)
         {
             Debug.Log("Nice");
+            RaycastHit hit;
+            if (other.Raycast(new Ray(transform.position, rb.velocity), out hit, Mathf.Infinity))
+            {
+                Vector3 collision = Vector3.Project(rb.velocity, hit.normal);
+                Vector3 plane = rb.velocity - collision;
+
+                stunned = 1f;
+                rb.velocity = -collision + plane;
+            }
         }
-        
+
+        private void OnCollisionEnter(Collision collision)
+        {
+            Debug.Log("Not nice");
+            stunned = 1f;
+
+            Vector3 normal = collision.GetContact(0).normal;
+            Vector3 ortho = Vector3.Project(transform.up, normal);
+            Vector3 forward = transform.up - ortho;
+            if (Vector3.Dot(normal, ortho) < 0)
+            {
+                float turn = 2 * forward.magnitude * ortho.magnitude / Mathf.Sqrt(forward.sqrMagnitude + ortho.sqrMagnitude);
+                float omag = Mathf.Clamp(ortho.magnitude - turn, 0, Mathf.Infinity);
+                ortho = ortho.normalized * omag;
+
+                Vector3 newUp = forward + ortho;
+                Quaternion q = Quaternion.LookRotation(Vector3.Cross(transform.right, newUp), newUp);
+                transform.rotation = q;
+            }
+        }
+
         #endregion
 
         #region Private Methods
@@ -134,8 +184,8 @@ namespace com.tuth.neabit {
             float forwardDrag = inputs.thrust ? dragCoeff / dragFactor : dragCoeff;
             float normalDrag = inputs.thrust ? dragCoeff * dragFactor : dragCoeff;
 
-            float fmag = Mathf.Clamp(forward.magnitude - forwardDrag * Time.deltaTime, 0, float.PositiveInfinity);
-            float nmag = Mathf.Clamp(normal.magnitude - normalDrag * Time.deltaTime, 0, float.PositiveInfinity);
+            float fmag = Mathf.Clamp(forward.magnitude - forwardDrag * Time.deltaTime, 0, Mathf.Infinity);
+            float nmag = Mathf.Clamp(normal.magnitude - normalDrag * Time.deltaTime, 0, Mathf.Infinity);
 
             forward = forward.normalized * fmag;
             normal = normal.normalized * nmag;
