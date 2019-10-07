@@ -155,8 +155,10 @@ namespace com.tuth.neabit {
         private void OnCollisionEnter(Collision collision)
         {
             Debug.Log("Not nice");
-            stunned = 1f;
+            stunned = 0.5f;
 
+            return;
+            
             Vector3 normal = collision.GetContact(0).normal;
             Vector3 ortho = Vector3.Project(transform.up, normal);
             Vector3 forward = transform.up - ortho;
