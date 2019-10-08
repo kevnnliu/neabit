@@ -27,6 +27,7 @@ namespace com.tuth.neabit {
         GameObject boltPrefab;
 
         bool isFiring;
+        int playerNumber;
         PlayerController playerController;
 
         #endregion
@@ -53,6 +54,8 @@ namespace com.tuth.neabit {
         // Start is called before the first frame update
         void Start() {
             playerController = GetComponent<PlayerController>();
+            playerNumber = PhotonNetwork.LocalPlayer.ActorNumber - 1;
+            Debug.Log("I am player number " + playerNumber + " with username " + PhotonNetwork.LocalPlayer.NickName);
         }
 
         // Update is called once per frame

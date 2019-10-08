@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.Events;
 using Photon.Pun;
 using Photon.Realtime;
+using ExitGames.Client.Photon;
+
 
 namespace com.tuth.neabit {
     public class GameManager : MonoBehaviourPunCallbacks {
@@ -21,11 +22,9 @@ namespace com.tuth.neabit {
 
         #region Private Fields
 
-        [SerializeField]
-        UnityEvent prepRace;
-        
-        [SerializeField]
-        UnityEvent startRace;
+        byte startRaceEventCode;
+        RaiseEventOptions startRaceEventOptions;
+        SendOptions startRaceSendOptions;
 
         Room currentRoom;
 
@@ -34,44 +33,30 @@ namespace com.tuth.neabit {
         #region MonoBehaviour CallBacks
 
         void Start() {
-            if (prepRace == null) {
-                Debug.LogError("prepRace() event is <Color=Red><a>null</a></Color>", this);
-                prepRace = new UnityEvent();
-            }
-
-            if (startRace == null) {
-                Debug.LogError("startRace() event is <Color=Red><a>null</a></Color>", this);
-                startRace = new UnityEvent();
-            }
+            startRaceEventCode = 1;
+            startRaceEventOptions = new RaiseEventOptions { Receivers = ReceiverGroup.All };
+            startRaceSendOptions = new SendOptions { Reliability = true };
 
             Instance = this;
             if (playerPrefab == null) {
                 Debug.LogError("<Color=Red><a>Missing</a></Color> playerPrefab reference", this);
             }
-            else {
-                if (PlayerManager.LocalPlayerInstance == null) {
-                    Debug.LogFormat("Instantiating local player from {0}", SceneManagerHelper.ActiveSceneName);
-                    PhotonNetwork.Instantiate(this.playerPrefab.name, new Vector3(0f, 5f, 0f), Quaternion.Euler(-90f, 0f, 0f), 0);
-                }
-                else {
-                    Debug.LogFormat("Ignoring scene load for {0}", SceneManagerHelper.ActiveSceneName);
-                }
-            }
 
             currentRoom = PhotonNetwork.CurrentRoom;
             startCountdown = 6;
 
-            // do we start the race?
-            if (currentRoom.Players.Count == currentRoom.MaxPlayers) {
-                prepareNewRace();
-            }
+            spawnPlayer();
         }
 
         void Update() {
+            Debug.Log("Current: " + currentRoom.Players.Count + ", Max: " + currentRoom.MaxPlayers);
+            isGame = currentRoom.PlayerCount == currentRoom.MaxPlayers;
+
             if (isGame && startCountdown > 0) {
                 startCountdown -= Time.deltaTime;
+                Debug.Log(startCountdown);
                 if (startCountdown <= 0) {
-                    startNewRace();
+                    startRace();
                 }
             }
         }
@@ -93,24 +78,48 @@ namespace com.tuth.neabit {
             PhotonNetwork.LeaveRoom();
         }
 
+        public void OnEvent(EventData photonEvent) {
+            byte eventCode = photonEvent.Code;
+
+            switch (eventCode) {
+                case 1:
+                    // start race
+                    PlayerManager.LocalPlayerInstance.GetComponent<PlayerController>().CONTROLS_ENABLED = true;
+                break;
+                default:
+                    // do nothing
+                break;
+            }
+        }
+
+        new public void OnEnable() {
+            PhotonNetwork.AddCallbackTarget(this);
+        }
+
+        new public void OnDisable() {
+            PhotonNetwork.RemoveCallbackTarget(this);
+        }   
+
         #endregion
 
         #region Private Methods
 
-        void prepareNewRace() {
-            isGame = true;
+        void spawnPlayer() {
+            int actorNum = PhotonNetwork.LocalPlayer.ActorNumber;
+            Vector3 spawnPos = playerStarts[actorNum].position;
+            Quaternion spawnRot = playerStarts[actorNum].rotation;
 
-            if (prepRace != null) {
-                prepRace.Invoke();
-            } else {
-                Debug.Log("Event prepRace is null!");
+            if (PlayerManager.LocalPlayerInstance == null) {
+                Debug.LogFormat("Instantiating local player from {0}", SceneManagerHelper.ActiveSceneName);
+                PhotonNetwork.Instantiate(this.playerPrefab.name, spawnPos, spawnRot, 0);
+            }
+            else {
+                Debug.LogFormat("Ignoring scene load for {0}", SceneManagerHelper.ActiveSceneName);
             }
         }
 
-        void startNewRace() {
-            if (startRace != null) {
-                startRace.Invoke();
-            }
+        void startRace() {
+            PhotonNetwork.RaiseEvent(startRaceEventCode, null, startRaceEventOptions, startRaceSendOptions);
         }
 
         #endregion
