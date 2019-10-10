@@ -10,7 +10,7 @@ namespace com.tuth.neabit {
         #region Private Serializable Fields
 
         [SerializeField]
-        private byte roomMaxPlayers = 4;
+        private byte roomMaxPlayers;
 
         [SerializeField]
         private GameObject controlPanel;
@@ -68,6 +68,8 @@ namespace com.tuth.neabit {
 
         public override void OnConnectedToMaster() {
             Debug.Log("OnConnectedToMaster() called by PUN");
+            Debug.Log("Connected to server: " + PhotonNetwork.Server);
+
             if (isConnecting) {
                 PhotonNetwork.JoinRandomRoom();
             }
@@ -76,7 +78,7 @@ namespace com.tuth.neabit {
         public override void OnJoinRandomFailed(short returnCode, string message) {
             Debug.Log("OnJoinRandomFailed() called by PUN, no random room available, attempting to create one");
 
-            PhotonNetwork.CreateRoom(null, new RoomOptions {MaxPlayers = roomMaxPlayers});
+            PhotonNetwork.CreateRoom(null, new RoomOptions { MaxPlayers = roomMaxPlayers });
         }
 
         public override void OnJoinedRoom() {

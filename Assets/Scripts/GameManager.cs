@@ -35,6 +35,10 @@ namespace com.tuth.neabit {
 
         #region MonoBehaviour CallBacks
 
+        void Awake() {
+            PhotonNetwork.NetworkingClient.EventReceived += OnEvent;
+        }
+
         void Start() {
             startRaceEventCode = 1;
             startRaceEventOptions = new RaiseEventOptions { Receivers = ReceiverGroup.All };
@@ -49,14 +53,17 @@ namespace com.tuth.neabit {
             startCountdown = 6;
 
             spawnPlayer();
+
+            Debug.Log("Current: " + currentRoom.Players.Count + ", Max: " + currentRoom.MaxPlayers);
+
+            if (currentRoom.PlayerCount == currentRoom.MaxPlayers) {
+                isGame = true;
+                currentRoom.IsOpen = false;
+                currentRoom.IsVisible = false;
+            }
         }
 
         void Update() {
-
-            Debug.Log("Current: " + currentRoom.Players.Count + ", Max: " + currentRoom.MaxPlayers);
-            if (currentRoom.PlayerCount == currentRoom.MaxPlayers) {
-                isGame = true;
-            };
 
             if (isGame && startCountdown > 0) {
                 startCountdown -= Time.deltaTime;
@@ -65,6 +72,10 @@ namespace com.tuth.neabit {
                     startRace();
                 }
             }
+        }
+
+        void OnDestroy() {
+            PhotonNetwork.NetworkingClient.EventReceived -= OnEvent;
         }
 
         #endregion
@@ -97,14 +108,6 @@ namespace com.tuth.neabit {
                 break;
             }
         }
-
-        public override void OnEnable() {
-            PhotonNetwork.NetworkingClient.EventReceived += OnEvent;
-        }
-
-        public override void OnDisable() {
-            PhotonNetwork.NetworkingClient.EventReceived -= OnEvent;
-        }   
 
         #endregion
 

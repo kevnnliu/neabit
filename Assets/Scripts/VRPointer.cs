@@ -33,7 +33,6 @@ namespace com.tuth.neabit {
             if (Physics.Raycast(rightController.transform.position, rightController.transform.forward, out hit, 10f)) {
                 if (hit.transform.gameObject.CompareTag("Button")) {
                     Button button = hit.transform.GetComponent<Button>();
-                    Debug.Log("Pointing at: " + button.name);
                     if (OVRInput.Get(OVRInput.Axis1D.SecondaryIndexTrigger) > 0.3f && button.interactable) {
                         Debug.Log("Selected button: " + button.name);
                         button.onClick.Invoke();
