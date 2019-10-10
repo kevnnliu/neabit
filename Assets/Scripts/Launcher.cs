@@ -55,8 +55,7 @@ namespace com.tuth.neabit {
 
             if (PhotonNetwork.IsConnected) {
                 PhotonNetwork.JoinRandomRoom();
-            }
-            else {
+            } else {
                 PhotonNetwork.GameVersion = gameVersion;
                 PhotonNetwork.ConnectUsingSettings();
             }
@@ -68,7 +67,6 @@ namespace com.tuth.neabit {
 
         public override void OnConnectedToMaster() {
             Debug.Log("OnConnectedToMaster() called by PUN");
-            Debug.Log("Connected to server: " + PhotonNetwork.Server);
 
             if (isConnecting) {
                 PhotonNetwork.JoinRandomRoom();
@@ -84,11 +82,7 @@ namespace com.tuth.neabit {
         public override void OnJoinedRoom() {
             Debug.Log("OnJoinedRoom() called by PUN");
 
-            if (PhotonNetwork.CurrentRoom.PlayerCount == 1) {
-                Debug.Log("Load 'NetworkScene'");
-
-                PhotonNetwork.LoadLevel("NetworkScene");
-            }
+            PhotonNetwork.LoadLevel("NetworkScene");
         }
 
         public override void OnDisconnected(DisconnectCause cause) {
