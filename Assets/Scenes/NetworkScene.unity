@@ -1163,6 +1163,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Game Manager
       objectReference: {fileID: 0}
+    - target: {fileID: 6363641994735985227, guid: ed620bb22b8beaf4b9dea9f7df7bdf9c,
+        type: 3}
+      propertyPath: m_TagString
+      value: GameController
+      objectReference: {fileID: 0}
     - target: {fileID: 4351350683260848857, guid: ed620bb22b8beaf4b9dea9f7df7bdf9c,
         type: 3}
       propertyPath: playerStarts.Array.data[0]

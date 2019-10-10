@@ -26,6 +26,9 @@ namespace com.tuth.neabit {
         RaiseEventOptions startRaceEventOptions;
         SendOptions startRaceSendOptions;
 
+        [SerializeField]
+        int launcherBuildIndex;
+
         Room currentRoom;
 
         #endregion
@@ -49,8 +52,11 @@ namespace com.tuth.neabit {
         }
 
         void Update() {
+
             Debug.Log("Current: " + currentRoom.Players.Count + ", Max: " + currentRoom.MaxPlayers);
-            isGame = currentRoom.PlayerCount == currentRoom.MaxPlayers;
+            if (currentRoom.PlayerCount == currentRoom.MaxPlayers) {
+                isGame = true;
+            };
 
             if (isGame && startCountdown > 0) {
                 startCountdown -= Time.deltaTime;
@@ -66,7 +72,7 @@ namespace com.tuth.neabit {
         #region Photon Callbacks
 
         public override void OnLeftRoom() {
-            SceneManager.LoadScene(0);
+            SceneManager.LoadScene(launcherBuildIndex); // goes to launcher
         }
 
         #endregion
@@ -92,12 +98,12 @@ namespace com.tuth.neabit {
             }
         }
 
-        new public void OnEnable() {
-            PhotonNetwork.AddCallbackTarget(this);
+        public override void OnEnable() {
+            PhotonNetwork.NetworkingClient.EventReceived += OnEvent;
         }
 
-        new public void OnDisable() {
-            PhotonNetwork.RemoveCallbackTarget(this);
+        public override void OnDisable() {
+            PhotonNetwork.NetworkingClient.EventReceived -= OnEvent;
         }   
 
         #endregion

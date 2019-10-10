@@ -98,7 +98,7 @@ namespace com.tuth.neabit {
             }
 
             // main thrusting is independent of control scheme
-            bool isThrusting = KEYBOARD_CONTROL ? Input.GetKey(KeyCode.Space) : handTriggerAverage() > 0.3f;
+            bool isThrusting = KEYBOARD_CONTROL ? Input.GetKey(KeyCode.Space) : getLeftHandTrigger() > 0.3f;
             thrust += thrustProcessing(isThrusting, thrustRate);
             thrust = Mathf.Clamp(thrust, 0, maxThrust);
             Vector3 thrustVector = Vector3.up * thrust;
@@ -222,8 +222,8 @@ namespace com.tuth.neabit {
             }
         }
 
-        float handTriggerAverage() {
-            return 0.5f * ( OVRInput.Get(OVRInput.Axis1D.PrimaryHandTrigger) + OVRInput.Get(OVRInput.Axis1D.SecondaryHandTrigger) );
+        float getLeftHandTrigger() {
+            return OVRInput.Get(OVRInput.Axis1D.PrimaryHandTrigger);
         }
 
         // for assisted control scheme
