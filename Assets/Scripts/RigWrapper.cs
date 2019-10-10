@@ -1,7 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace com.tuth.neabit {
     public class RigWrapper : MonoBehaviour {
@@ -18,9 +17,6 @@ namespace com.tuth.neabit {
 
         #region Private Fields
 
-        [SerializeField]
-        Button leaveButton;
-
         Vector3 offset;
 
         #endregion
@@ -35,32 +31,15 @@ namespace com.tuth.neabit {
 
         // Update is called once per frame
         void Update() {
-            // leave game
-            leaveButton.interactable = OVRInput.Get(OVRInput.Button.Start, OVRInput.Controller.LTouch) || Input.GetKey(KeyCode.P);
+            
         }
 
         void LateUpdate() {
-            if (anchor != null) {
-                transform.position = anchor.position;
-                if (anchor.parent.GetComponent<PlayerController>().ASSISTED_CONTROL) {
-                    transform.rotation = anchorYaw;
-                } else {
-                    transform.rotation = anchor.parent.rotation * Quaternion.Euler(-90f, 0f, 180f);
-                }
-            }
-        }
-
-        #endregion
-
-        #region Public Methods
-
-        public void onClickLeave() {
-            GameObject gm = GameObject.Find("Game Manager");
-            if (gm == null) {
-                Debug.Log("Exiting game");
-                Application.Quit(); // exit game if in main menu
+            transform.position = anchor.position;
+            if (anchor.parent.GetComponent<PlayerController>().ASSISTED_CONTROL) {
+                transform.rotation = anchorYaw;
             } else {
-                gm.GetComponent<GameManager>().LeaveRoom();
+                transform.rotation = anchor.parent.rotation * Quaternion.Euler(-90f, 0f, 180f);
             }
         }
 

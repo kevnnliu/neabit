@@ -9,7 +9,6 @@ namespace com.tuth.neabit {
         #region Public Fields
 
         public GameObject owner;
-        public int drain = 20;
 
         #endregion
 

@@ -7,8 +7,6 @@ TagManager:
   - Structure
   - Bolt
   - Button
-  - Checkpoint
-  - Menu
   layers:
   - Default
   - TransparentFX
