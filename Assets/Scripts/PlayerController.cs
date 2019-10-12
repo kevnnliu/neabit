@@ -78,7 +78,7 @@ namespace com.tuth.neabit {
             rb = GetComponent<Rigidbody>();
 
             // setting up camera rig
-            if (PlayerManager.LocalPlayerInstance.Equals(this)) {
+            if (PlayerManager.LocalPlayerInstance.Equals(this.gameObject)) {
                 GameObject playerCamera = Instantiate(rigPrefab, transform.position, Quaternion.identity);
                 playerRig = playerCamera.GetComponent<RigWrapper>();
                 headTrack = playerRig.headTrack;

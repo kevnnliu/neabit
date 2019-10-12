@@ -160,7 +160,7 @@ MonoBehaviour:
   turnSensitivity: 0.022
   dragCoeff: 200
   dragFactor: 2
-  KEYBOARD_CONTROL: 1
+  KEYBOARD_CONTROL: 0
   ASSISTED_CONTROL: 1
   CONTROLS_ENABLED: 0
 --- !u!114 &8941876801094764701
