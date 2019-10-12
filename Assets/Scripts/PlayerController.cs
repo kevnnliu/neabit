@@ -60,7 +60,6 @@ namespace com.tuth.neabit {
 
         public bool KEYBOARD_CONTROL = false;
         public bool ASSISTED_CONTROL = true;
-        public bool CONTROLS_ENABLED = true;
 
         #endregion
 
@@ -98,7 +97,7 @@ namespace com.tuth.neabit {
             }
 
             // main thrusting is independent of control scheme
-            bool isThrusting = KEYBOARD_CONTROL ? Input.GetKey(KeyCode.Space) : getLeftHandTrigger() > 0.3f;
+            bool isThrusting = KEYBOARD_CONTROL ? Input.GetKey(KeyCode.Space) : handTriggerAverage() > 0.3f;
             thrust += thrustProcessing(isThrusting, thrustRate);
             thrust = Mathf.Clamp(thrust, 0, maxThrust);
             Vector3 thrustVector = Vector3.up * thrust;
@@ -109,9 +108,7 @@ namespace com.tuth.neabit {
 
                 // input output
                 combinedThrustVector = thrustVector;
-                if (CONTROLS_ENABLED) {
-                    transform.Translate(combinedThrustVector * Time.deltaTime);
-                }
+                transform.Translate(combinedThrustVector * Time.deltaTime);
 
                 // free rotation (unclamped)
                 float bankCoeff = -movementInputs.isBanking * maxRoll * turnSensitivity;
@@ -139,9 +136,7 @@ namespace com.tuth.neabit {
                 pitchRate = -inputSmoothing(movementInputs.isPitching) * maxPitch; // inverted pitch
 
                 // input output
-                if (CONTROLS_ENABLED) {
-                    transform.Translate(combinedThrustVector * Time.deltaTime);
-                }
+                transform.Translate(combinedThrustVector * Time.deltaTime);
                 transform.Rotate(new Vector3(pitchRate, -rollRate, yawRate) * Time.deltaTime);
 
             }
@@ -222,8 +217,8 @@ namespace com.tuth.neabit {
             }
         }
 
-        float getLeftHandTrigger() {
-            return OVRInput.Get(OVRInput.Axis1D.PrimaryHandTrigger);
+        float handTriggerAverage() {
+            return 0.5f * ( OVRInput.Get(OVRInput.Axis1D.PrimaryHandTrigger) + OVRInput.Get(OVRInput.Axis1D.SecondaryHandTrigger) );
         }
 
         // for assisted control scheme

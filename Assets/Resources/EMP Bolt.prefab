@@ -108,7 +108,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   owner: {fileID: 0}
-  drain: 20
   boltSpeed: 50
 --- !u!114 &7773031001225192346
 MonoBehaviour:
