@@ -66,7 +66,7 @@ namespace com.tuth.neabit {
 
         public bool KEYBOARD_CONTROL = false;
         public bool ASSISTED_CONTROL = true;
-        public bool CONTROLS_ENABLED = true;
+        public bool CONTROLS_ENABLED = false;
 
         #endregion
 
@@ -113,7 +113,7 @@ namespace com.tuth.neabit {
             // Non-networked movement?
             inputs = GetMovementInputs();
 
-            if (stunned == 0 && inputs.thrust)
+            if (stunned == 0 && inputs.thrust && CONTROLS_ENABLED)
             {
                 rb.velocity = Vector3.Lerp(GetPhysicsMovement(), GetDesiredMovement(), 0.5f);
             }
@@ -141,21 +141,22 @@ namespace com.tuth.neabit {
 
         private void OnTriggerEnter(Collider other)
         {
-            Debug.Log("Nice");
-            RaycastHit hit;
-            if (other.Raycast(new Ray(transform.position, rb.velocity), out hit, Mathf.Infinity))
-            {
-                Vector3 collision = Vector3.Project(rb.velocity, hit.normal);
-                Vector3 plane = rb.velocity - collision;
+            // Debug.Log("Nice");
+            // RaycastHit hit;
+            // if (other.Raycast(new Ray(transform.position, rb.velocity), out hit, Mathf.Infinity))
+            // {
+            //     Vector3 collision = Vector3.Project(rb.velocity, hit.normal);
+            //     Vector3 plane = rb.velocity - collision;
 
-                stunned = 1f;
-                rb.velocity = -collision + plane;
-            }
+            //     stunned = 1f;
+            //     rb.velocity = -collision + plane;
+            // }
         }
 
         private void OnCollisionEnter(Collision collision)
         {
-            Debug.Log("Not nice");
+            Debug.Log("OnCollisionEnter playerController");
+            // Debug.Log(collision.gameObject.name);
             stunned = 0.5f;
 
             return;
