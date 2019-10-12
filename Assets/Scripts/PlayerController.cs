@@ -234,7 +234,7 @@ namespace com.tuth.neabit {
             float iP = KEYBOARD_CONTROL ? Input.GetAxis("Vertical") * 90f : -calculateTheta(averageHandP, headP - shoulderOffset, false);
             float iY = KEYBOARD_CONTROL ? Input.GetAxis("HorizontalAlt") * 90f : calculateTheta(averageHandP, headP - shoulderOffset, true);
 
-            bool iT = KEYBOARD_CONTROL ? Input.GetKey(KeyCode.Space) : handTriggerAverage() > 0.3f;
+            bool iT = KEYBOARD_CONTROL ? Input.GetKey(KeyCode.Space) : getLeftHandTrigger() > 0.3f;
 
             if (float.IsNaN(iB) || float.IsNaN(iP) || float.IsNaN(iY)) {
                 return new Inputs(0, 0, 0, false);
