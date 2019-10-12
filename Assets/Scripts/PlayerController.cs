@@ -66,6 +66,7 @@ namespace com.tuth.neabit {
 
         public bool KEYBOARD_CONTROL = false;
         public bool ASSISTED_CONTROL = true;
+        public bool CONTROLS_ENABLED = true;
 
         #endregion
 
@@ -256,8 +257,8 @@ namespace com.tuth.neabit {
             }
         }
 
-        float handTriggerAverage() {
-            return 0.5f * ( OVRInput.Get(OVRInput.Axis1D.PrimaryHandTrigger) + OVRInput.Get(OVRInput.Axis1D.SecondaryHandTrigger) );
+        float getLeftHandTrigger() {
+            return OVRInput.Get(OVRInput.Axis1D.PrimaryHandTrigger);
         }
 
         // for assisted control scheme

@@ -27,6 +27,7 @@ namespace com.tuth.neabit {
         GameObject boltPrefab;
 
         bool isFiring;
+        int playerNumber;
         PlayerController playerController;
 
         #endregion
@@ -36,6 +37,7 @@ namespace com.tuth.neabit {
         public float energy = 100f;
         public static GameObject LocalPlayerInstance;
         public GameObject playerCamera;
+        public bool CONTROLS_ENABLED = true;
 
         #endregion
 
@@ -52,6 +54,8 @@ namespace com.tuth.neabit {
         // Start is called before the first frame update
         void Start() {
             playerController = GetComponent<PlayerController>();
+            playerNumber = PhotonNetwork.LocalPlayer.ActorNumber - 1;
+            Debug.Log("I am player number " + playerNumber + " with username " + PhotonNetwork.LocalPlayer.NickName);
         }
 
         // Update is called once per frame
@@ -60,9 +64,6 @@ namespace com.tuth.neabit {
                 playerController.enabled = false;
                 playerCamera.SetActive(false);
             }
-            if (energy <= 0) {
-                GameManager.Instance.LeaveRoom();
-            }
         }
 
         void OnTriggerEnter(Collider other) {
@@ -70,9 +71,25 @@ namespace com.tuth.neabit {
                 return;
             }
             if (other.CompareTag("Bolt")) {
-                if (other.GetComponent<EMPBolt>().owner != this.gameObject) {
-                    energy -= 20;
+                EMPBolt bolt = other.GetComponent<EMPBolt>();
+                if (bolt.owner != this.gameObject) {
+                    if (energy - bolt.drain < 0) {
+                        energy = 0;
+                    } else {
+                        energy -= bolt.drain;
+                    }
                     PhotonNetwork.Destroy(other.gameObject);
+                }
+            } else if (other.CompareTag("Checkpoint")) {
+                Checkpoint checkpoint = other.GetComponent<Checkpoint>();
+                if (checkpoint.laps >= 3) {
+                    leaveGame();
+                } else {
+                    if (checkpoint.isEnabled) {
+                        checkpoint.isEnabled = false;
+                        checkpoint.nextCheckpoint.isEnabled = true;
+                        checkpoint.laps += 1;
+                    }
                 }
             }
         }
@@ -84,6 +101,14 @@ namespace com.tuth.neabit {
         public void fire() {
             GameObject bolt = PhotonNetwork.Instantiate(boltPrefab.name, transform.position, transform.rotation, 0);
             bolt.GetComponent<EMPBolt>().owner = this.gameObject;
+        }
+
+        #endregion
+
+        #region Private Methods
+
+        void leaveGame() {
+            GameObject.Find("Game Manager").GetComponent<GameManager>().LeaveRoom();
         }
 
         #endregion
