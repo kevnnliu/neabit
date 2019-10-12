@@ -10,7 +10,7 @@ namespace com.tuth.neabit {
         #region Private Serializable Fields
 
         [SerializeField]
-        private byte maxPlayersPerRoom = 4;
+        private byte roomMaxPlayers;
 
         [SerializeField]
         private GameObject controlPanel;
@@ -55,8 +55,7 @@ namespace com.tuth.neabit {
 
             if (PhotonNetwork.IsConnected) {
                 PhotonNetwork.JoinRandomRoom();
-            }
-            else {
+            } else {
                 PhotonNetwork.GameVersion = gameVersion;
                 PhotonNetwork.ConnectUsingSettings();
             }
@@ -68,6 +67,7 @@ namespace com.tuth.neabit {
 
         public override void OnConnectedToMaster() {
             Debug.Log("OnConnectedToMaster() called by PUN");
+
             if (isConnecting) {
                 PhotonNetwork.JoinRandomRoom();
             }
@@ -76,22 +76,21 @@ namespace com.tuth.neabit {
         public override void OnJoinRandomFailed(short returnCode, string message) {
             Debug.Log("OnJoinRandomFailed() called by PUN, no random room available, attempting to create one");
 
-            PhotonNetwork.CreateRoom(null, new RoomOptions {MaxPlayers = maxPlayersPerRoom});
+            PhotonNetwork.CreateRoom(null, new RoomOptions { MaxPlayers = roomMaxPlayers });
         }
 
         public override void OnJoinedRoom() {
             Debug.Log("OnJoinedRoom() called by PUN");
 
-            if (PhotonNetwork.CurrentRoom.PlayerCount == 1) {
-                Debug.Log("Load 'NetworkScene'");
-
-                PhotonNetwork.LoadLevel("NetworkScene");
-            }
+            PhotonNetwork.LoadLevel("NetworkScene");
         }
 
         public override void OnDisconnected(DisconnectCause cause) {
-            progressLabel.SetActive(false);
-            controlPanel.SetActive(true);
+            if (progressLabel != null && controlPanel != null) {
+                progressLabel.SetActive(false);
+                controlPanel.SetActive(true);
+                Debug.Log("UI elements successfully set");
+            }
             Debug.LogWarningFormat("OnDisconnect() called by PUN with reason {0}", cause);
         }
 
