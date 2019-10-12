@@ -62,7 +62,9 @@ namespace com.tuth.neabit {
         void Update() {
             if (photonView.IsMine == false && PhotonNetwork.IsConnected == true) {
                 playerController.enabled = false;
-                playerCamera.SetActive(false);
+                if (playerCamera != null) {
+                    playerCamera.SetActive(false);
+                }
             }
         }
 
