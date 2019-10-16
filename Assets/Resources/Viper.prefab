@@ -150,7 +150,6 @@ MonoBehaviour:
   cameraAnchor: {fileID: 8726416194725280036}
   rigPrefab: {fileID: 5227141864175768887, guid: 08be47f80b57d734f999a9b17c67980f,
     type: 3}
-  rb: {fileID: 1514367676292445960}
   maxThrust: 778
   thrustRate: 400
   maxVThrust: 10

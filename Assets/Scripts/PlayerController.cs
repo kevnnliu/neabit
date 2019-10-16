@@ -14,9 +14,6 @@ namespace com.tuth.neabit {
         GameObject rigPrefab;
 
         [SerializeField]
-        Rigidbody rb;
-
-        [SerializeField]
         float maxThrust;
 
         [SerializeField]
@@ -56,9 +53,18 @@ namespace com.tuth.neabit {
         GameObject rightTrack;
         RigWrapper playerRig;
 
-        Inputs inputs;
+        Queue<PlayerMovement> forces;
 
-        float stunned;
+        #endregion
+
+        #region Internal Fields
+
+        internal Rigidbody rb;
+
+        internal Inputs inputs;
+
+        internal float stunned;
+        internal bool boosting;
 
         #endregion
 
@@ -89,6 +95,11 @@ namespace com.tuth.neabit {
             }
 
             //
+            forces = new Queue<PlayerMovement>();
+            forces.Enqueue(new DragForce(this));
+            forces.Enqueue(new ThrustForce(this));
+
+            boosting = false;
             stunned = 0;
             rb.maxAngularVelocity = 0;
         }
@@ -112,17 +123,23 @@ namespace com.tuth.neabit {
             // Stun
             stunned = Mathf.Clamp(stunned - Time.deltaTime, 0, 3600);
 
+            boosting = false;
+
             // Non-networked movement?
             inputs = GetMovementInputs();
 
-            if (stunned == 0 && inputs.thrust && CONTROLS_ENABLED)
-            {
-                rb.velocity = Vector3.Lerp(GetPhysicsMovement(), GetDesiredMovement(), 0.5f);
+            Queue<PlayerMovement> newForces = new Queue<PlayerMovement>();
+            foreach (PlayerMovement movement in forces) {
+                if (movement.GetStatus() == Status.ACTIVE)
+                {
+                    rb.AddForce(movement.Force());
+                }
+                if (movement.GetStatus() != Status.REMOVE)
+                {
+                    newForces.Enqueue(movement);
+                }
             }
-            else
-            {
-                rb.velocity = GetPhysicsMovement();
-            }
+            forces = newForces;
             
             // free rotation (unclamped)
             if (stunned == 0)
@@ -143,16 +160,16 @@ namespace com.tuth.neabit {
 
         private void OnTriggerEnter(Collider other)
         {
-            // Debug.Log("Nice");
-            // RaycastHit hit;
-            // if (other.Raycast(new Ray(transform.position, rb.velocity), out hit, Mathf.Infinity))
-            // {
-            //     Vector3 collision = Vector3.Project(rb.velocity, hit.normal);
-            //     Vector3 plane = rb.velocity - collision;
-
-            //     stunned = 1f;
-            //     rb.velocity = -collision + plane;
-            // }
+            GameObject obj = other.gameObject;
+            if (obj.CompareTag("Boost"))
+            {
+                if (!boosting && Vector3.Dot(rb.velocity, -obj.transform.forward) < 0)
+                {
+                    Debug.Log("BOOOOOOST!");
+                    boosting = true;
+                    forces.Enqueue(new BoostForce(this, obj.transform.forward));
+                }
+            }
         }
 
         private void OnCollisionEnter(Collision collision)
@@ -212,20 +229,6 @@ namespace com.tuth.neabit {
             return forward;
         }
 
-        struct Inputs {
-            public float roll;
-            public float pitch;
-            public float yaw;
-            public bool thrust;
-
-            public Inputs(float iR, float iP, float iY, bool iT) {
-                roll = iR;
-                pitch = iP;
-                yaw = iY;
-                thrust = iT;
-            }
-        }
-
         Inputs GetMovementInputs() {
             Vector3 leftTouchP = leftTrack.transform.localPosition;
             Vector3 rightTouchP = rightTrack.transform.localPosition;
@@ -272,6 +275,26 @@ namespace com.tuth.neabit {
             float angle = Mathf.Asin(vDist / euclidean) * Mathf.Rad2Deg;
 
             return Mathf.Clamp(angle, -90f, 90f);
+        }
+
+        #endregion
+
+        #region Structures
+
+        public struct Inputs
+        {
+            public float roll;
+            public float pitch;
+            public float yaw;
+            public bool thrust;
+
+            public Inputs(float iR, float iP, float iY, bool iT)
+            {
+                roll = iR;
+                pitch = iP;
+                yaw = iY;
+                thrust = iT;
+            }
         }
 
         #endregion
