@@ -142,7 +142,7 @@ namespace com.tuth.neabit {
             forces = newForces;
             
             // free rotation (unclamped)
-            if (stunned == 0)
+            if (true)
             {
                 float rollCoeff = -inputs.roll * maxRoll * turnSensitivity;
                 float yawCoeff = inputs.yaw * maxYaw * turnSensitivity;
@@ -174,8 +174,6 @@ namespace com.tuth.neabit {
 
         private void OnCollisionEnter(Collision collision)
         {
-            Debug.Log("OnCollisionEnter playerController");
-            // Debug.Log(collision.gameObject.name);
             stunned = 0.5f;
 
             return;

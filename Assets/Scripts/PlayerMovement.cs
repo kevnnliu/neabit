@@ -31,9 +31,9 @@ namespace com.tuth.neabit
 
         public override Vector3 Force()
         {
-            const float BASE_DRAG = 95;
-            const float DRAG_FACTOR = 20f;
-            const float DRAG_THRESHOLD = 90;
+            const float BASE_DRAG = 24;
+            const float DRAG_THRESHOLD = 60;
+            const float DRAG_FACTOR = (48 - BASE_DRAG) / (95 - DRAG_THRESHOLD);
 
             float speed = player.rb.velocity.magnitude;
             if (speed < BASE_DRAG * Time.deltaTime)
@@ -60,9 +60,11 @@ namespace com.tuth.neabit
 
         public override Vector3 Force()
         {
-            const float THRUST_FORCE = 190;
+            const float THRUST_FORCE = 48;
+            const float LATERAL_DRAG = 2;
 
-            return THRUST_FORCE * player.transform.up;
+            Vector3 lateral = Vector3.ProjectOnPlane(player.rb.velocity, player.transform.up);
+            return THRUST_FORCE * player.transform.up - LATERAL_DRAG * lateral;
         }
     }
 
@@ -73,35 +75,32 @@ namespace com.tuth.neabit
 
         public BoostForce(PlayerController player, Vector3 direction) : base(player)
         {
-            const float BOOST_DURATION = 1f;
-            boostTime = BOOST_DURATION;
+            boostTime = 0;
             this.direction = direction.normalized;
         }
 
         public override Status GetStatus()
         {
-            return (boostTime > 0) ? Status.ACTIVE : Status.REMOVE;
+            const float BOOST_DURATION = 1f;
+            return (boostTime < BOOST_DURATION) ? Status.ACTIVE : Status.REMOVE;
         }
 
         public override Vector3 Force()
         {
+            const float BOOST_DURATION = 0.05f;
             const float BOOST_SPEED = 1.475f * 95f;
-            const float BOOST_ACCEL = 400;
+            const float LATERAL_DRAG = 0.5f;
 
             player.boosting = true;
 
-            if (boostTime == 1f)
+            if (boostTime <= BOOST_DURATION)
             {
-                player.rb.velocity += BOOST_SPEED * this.direction;
+                float drag = (boostTime == 0) ? LATERAL_DRAG : 1;
+                Vector3 lateral = Vector3.ProjectOnPlane(player.rb.velocity, this.direction);
+                player.rb.velocity = BOOST_SPEED * this.direction + drag * lateral;
             }
-            boostTime -= Time.deltaTime;
+            boostTime += Time.deltaTime;
             return Vector3.zero;
-
-            if (player.rb.velocity.magnitude > BOOST_SPEED)
-            {
-                return Vector3.zero;
-            }
-            return BOOST_ACCEL * this.direction;
         }
     }
 }
