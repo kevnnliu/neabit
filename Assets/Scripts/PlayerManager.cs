@@ -41,7 +41,7 @@ namespace com.tuth.neabit {
 
         #region Constants
 
-        const int LAPS_TO_WIN = 3;
+        const int LAPS_TO_WIN = 1;
         const float TOTAL_ENERGY = 100f;
         const float BOLT_ENERGY_COST = 20f;
 
@@ -111,7 +111,8 @@ namespace com.tuth.neabit {
                 }
             } else if (other.CompareTag("Checkpoint")) {
                 Checkpoint checkpoint = other.GetComponent<Checkpoint>();
-                if (checkpoint.laps >= LAPS_TO_WIN) {
+                if (checkpoint.laps + 1 >= LAPS_TO_WIN && checkpoint.isEnd) {
+                    checkpoint.isEnabled = false;
                     gameManager.completedRaceEventCall(PhotonNetwork.LocalPlayer.UserId);
                 } else {
                     if (checkpoint.isEnabled) {

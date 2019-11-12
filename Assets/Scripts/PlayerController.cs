@@ -92,7 +92,7 @@ namespace com.tuth.neabit {
 
             // setting up camera rig
             if (PlayerManager.LocalPlayerInstance.Equals(this.gameObject)) {
-                GameObject playerCamera = Instantiate(rigPrefab, transform.position, Quaternion.identity);
+                GameObject playerCamera = Instantiate(rigPrefab, cameraAnchor.transform.position, Quaternion.identity);
                 playerRig = playerCamera.GetComponent<RigWrapper>();
                 headTrack = playerRig.headTrack;
                 leftTrack = playerRig.leftTrack;
@@ -127,10 +127,10 @@ namespace com.tuth.neabit {
             }
 
             // networked firing
-            if ((Input.GetKeyDown(KeyCode.M) || OVRInput.GetDown(OVRInput.Button.SecondaryIndexTrigger)) && CONTROLS_ENABLED) {
-                Vector3 target = headTrack.transform.position + (headTrack.transform.forward * MAX_BOLT_DISTANCE);
-                playerManager.fire(target);
-            }
+            // if ((Input.GetKeyDown(KeyCode.M) || OVRInput.GetDown(OVRInput.Button.SecondaryIndexTrigger)) && CONTROLS_ENABLED) {
+            //     Vector3 target = headTrack.transform.position + (headTrack.transform.forward * MAX_BOLT_DISTANCE);
+            //     playerManager.fire(target);
+            // }
 
             // Stun
             stunned = Mathf.Clamp(stunned - Time.deltaTime, 0, 3600);

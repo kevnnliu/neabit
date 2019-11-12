@@ -87,8 +87,8 @@ namespace com.tuth.neabit
 
         public override Vector3 Force()
         {
-            const float BOOST_DURATION = 0.05f;
-            const float BOOST_SPEED = 1.475f * 95f;
+            const float BOOST_DURATION = 0.08f;
+            const float BOOST_SPEED = 1.975f * 95f;
             const float LATERAL_DRAG = 0.5f;
 
             player.boosting = true;
