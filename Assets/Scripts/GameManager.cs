@@ -17,12 +17,15 @@ namespace com.tuth.neabit {
         public Transform[] playerStarts;
         public bool isGame = false;
         public float startCountdown;
+        public ArrayList completedRaceIDs;
 
         #endregion
 
         #region Private Fields
 
         byte startRaceEventCode;
+        byte countdownStartEventCode;
+        byte completedRaceEventCode;
         RaiseEventOptions startRaceEventOptions;
         SendOptions startRaceSendOptions;
 
@@ -41,6 +44,8 @@ namespace com.tuth.neabit {
 
         void Start() {
             startRaceEventCode = 1;
+            countdownStartEventCode = 2;
+            completedRaceEventCode = 3;
             startRaceEventOptions = new RaiseEventOptions { Receivers = ReceiverGroup.All };
             startRaceSendOptions = new SendOptions { Reliability = true };
 
@@ -56,8 +61,11 @@ namespace com.tuth.neabit {
 
             Debug.Log("Current: " + currentRoom.Players.Count + ", Max: " + currentRoom.MaxPlayers);
 
+            completedRaceIDs = new ArrayList();
+
             if (currentRoom.PlayerCount == currentRoom.MaxPlayers) {
                 isGame = true;
+                countdownStartEventCall();
                 currentRoom.IsOpen = false;
                 currentRoom.IsVisible = false;
             }
@@ -69,9 +77,11 @@ namespace com.tuth.neabit {
                 startCountdown -= Time.deltaTime;
                 Debug.Log(startCountdown);
                 if (startCountdown <= 0) {
-                    startRace();
+                    startRaceEventCall();
+                    isGame = false;
                 }
             }
+
         }
 
         void OnDestroy() {
@@ -95,13 +105,37 @@ namespace com.tuth.neabit {
             PhotonNetwork.LeaveRoom();
         }
 
+        public void completedRaceEventCall(string playerID) {
+            PhotonNetwork.RaiseEvent(completedRaceEventCode, playerID, startRaceEventOptions, startRaceSendOptions);
+        }
+
         public void OnEvent(EventData photonEvent) {
             byte eventCode = photonEvent.Code;
+            GameObject localPlayer = PlayerManager.LocalPlayerInstance;
+            object eventData = photonEvent.CustomData;
 
             switch (eventCode) {
                 case 1:
                     // start race
-                    PlayerManager.LocalPlayerInstance.GetComponent<PlayerController>().CONTROLS_ENABLED = true;
+                    localPlayer.GetComponent<PlayerController>().CONTROLS_ENABLED = true;
+                    Debug.Log("Controls enabled");
+                break;
+                case 2:
+                    // start countdown
+                    localPlayer.GetComponent<PlayerManager>().gameInfoDisplay.beginCountdown(startCountdown);
+                    Debug.Log("Countdown begin");
+                break;
+                case 3:
+                    // a player completed the race
+                    string playerID = (string)eventData;
+                    if (!completedRaceIDs.Contains(playerID)) {
+                        completedRaceIDs.Add(playerID);
+                        Debug.Log(playerID + " completed the race");
+                        localPlayer.GetComponent<PlayerManager>().gameInfoDisplay.gameText.text = "# " + completedRaceIDs.Count;
+                        localPlayer.GetComponent<PlayerManager>().gameInfoDisplay.gameText.CrossFadeAlpha(1f, 0f, true);
+                    } else {
+                        Debug.Log(playerID + " already completed the race!");
+                    }
                 break;
                 default:
                     // do nothing
@@ -127,8 +161,12 @@ namespace com.tuth.neabit {
             }
         }
 
-        void startRace() {
+        void startRaceEventCall() {
             PhotonNetwork.RaiseEvent(startRaceEventCode, null, startRaceEventOptions, startRaceSendOptions);
+        }
+
+        void countdownStartEventCall() {
+            PhotonNetwork.RaiseEvent(countdownStartEventCode, null, startRaceEventOptions, startRaceSendOptions);
         }
 
         #endregion

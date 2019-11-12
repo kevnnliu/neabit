@@ -13,6 +13,7 @@ namespace com.tuth.neabit {
         public GameObject rightTrack;
         public Transform anchor;
         public Quaternion anchorYaw;
+        public GameObject playerHUD;
 
         #endregion
 
