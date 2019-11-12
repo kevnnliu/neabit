@@ -9,7 +9,8 @@ namespace com.tuth.neabit {
         #region Public Fields
 
         public GameObject owner;
-        public int drain = 20;
+        public Vector3 target;
+        public const float drain = 20f;
 
         #endregion
 
@@ -29,9 +30,18 @@ namespace com.tuth.neabit {
 
         // Update is called once per frame
         void Update() {
-            transform.position += transform.up * boltSpeed * Time.deltaTime;
+            if (target != null) {
+                transform.position += Vector3.Normalize(target - transform.position) * boltSpeed * Time.deltaTime;
+                if (Vector3.Magnitude(transform.position - target) < boltSpeed * Time.deltaTime) {
+                    Destroy(this.gameObject);
+                }
+            }
         }
 
 	    #endregion
+
+        public float getDrain() {
+            return drain;
+        }
     }
 }

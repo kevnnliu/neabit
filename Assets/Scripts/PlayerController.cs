@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace com.tuth.neabit {
     public class PlayerController : MonoBehaviour {
@@ -57,6 +58,12 @@ namespace com.tuth.neabit {
 
         #endregion
 
+        #region Constants
+
+        const float MAX_BOLT_DISTANCE = 60f;
+
+        #endregion
+
         #region Internal Fields
 
         internal Rigidbody rb;
@@ -92,6 +99,8 @@ namespace com.tuth.neabit {
                 rightTrack = playerRig.rightTrack;
                 GetComponent<PlayerManager>().playerCamera = playerCamera;
                 playerRig.anchor = cameraAnchor.transform;
+                playerRig.playerHUD.SetActive(true);
+                playerManager.setEnergyMeter(playerRig.playerHUD.GetComponentInChildren<Slider>());
             }
 
             //
@@ -110,14 +119,17 @@ namespace com.tuth.neabit {
             // control scheme switch
             if (Input.GetKeyDown(KeyCode.Q)) {
                 KEYBOARD_CONTROL = !KEYBOARD_CONTROL;
+                Debug.Log("Keyboard controls: " + KEYBOARD_CONTROL);
             }
             if (Input.GetKeyDown(KeyCode.E) || OVRInput.GetDown(OVRInput.Button.PrimaryThumbstick)) {
                 ASSISTED_CONTROL = !ASSISTED_CONTROL;
+                Debug.Log("Assisted controls: " + ASSISTED_CONTROL);
             }
 
             // networked firing
-            if (Input.GetKeyDown(KeyCode.M) || OVRInput.GetDown(OVRInput.Button.SecondaryIndexTrigger)) {
-                playerManager.fire();
+            if ((Input.GetKeyDown(KeyCode.M) || OVRInput.GetDown(OVRInput.Button.SecondaryIndexTrigger)) && CONTROLS_ENABLED) {
+                Vector3 target = headTrack.transform.position + (headTrack.transform.forward * MAX_BOLT_DISTANCE);
+                playerManager.fire(target);
             }
 
             // Stun
@@ -128,19 +140,21 @@ namespace com.tuth.neabit {
             // Non-networked movement?
             inputs = GetMovementInputs();
 
-            Queue<PlayerMovement> newForces = new Queue<PlayerMovement>();
-            foreach (PlayerMovement movement in forces) {
-                if (movement.GetStatus() == Status.ACTIVE)
-                {
-                    rb.AddForce(movement.Force());
+            if (CONTROLS_ENABLED) {
+                Queue<PlayerMovement> newForces = new Queue<PlayerMovement>();
+                foreach (PlayerMovement movement in forces) {
+                    if (movement.GetStatus() == Status.ACTIVE)
+                    {
+                        rb.AddForce(movement.Force());
+                    }
+                    if (movement.GetStatus() != Status.REMOVE)
+                    {
+                        newForces.Enqueue(movement);
+                    }
                 }
-                if (movement.GetStatus() != Status.REMOVE)
-                {
-                    newForces.Enqueue(movement);
-                }
+                forces = newForces;
             }
-            forces = newForces;
-            
+                
             // free rotation (unclamped)
             if (true)
             {
@@ -156,6 +170,7 @@ namespace com.tuth.neabit {
             {
                 // Stunned turning
             }
+        
         }
 
         private void OnTriggerEnter(Collider other)
@@ -175,22 +190,20 @@ namespace com.tuth.neabit {
         private void OnCollisionEnter(Collision collision)
         {
             stunned = 0.5f;
-
-            return;
             
-            Vector3 normal = collision.GetContact(0).normal;
-            Vector3 ortho = Vector3.Project(transform.up, normal);
-            Vector3 forward = transform.up - ortho;
-            if (Vector3.Dot(normal, ortho) < 0)
-            {
-                float turn = 2 * forward.magnitude * ortho.magnitude / Mathf.Sqrt(forward.sqrMagnitude + ortho.sqrMagnitude);
-                float omag = Mathf.Clamp(ortho.magnitude - turn, 0, Mathf.Infinity);
-                ortho = ortho.normalized * omag;
+            // Vector3 normal = collision.GetContact(0).normal;
+            // Vector3 ortho = Vector3.Project(transform.up, normal);
+            // Vector3 forward = transform.up - ortho;
+            // if (Vector3.Dot(normal, ortho) < 0)
+            // {
+            //     float turn = 2 * forward.magnitude * ortho.magnitude / Mathf.Sqrt(forward.sqrMagnitude + ortho.sqrMagnitude);
+            //     float omag = Mathf.Clamp(ortho.magnitude - turn, 0, Mathf.Infinity);
+            //     ortho = ortho.normalized * omag;
 
-                Vector3 newUp = forward + ortho;
-                Quaternion q = Quaternion.LookRotation(Vector3.Cross(transform.right, newUp), newUp);
-                transform.rotation = q;
-            }
+            //     Vector3 newUp = forward + ortho;
+            //     Quaternion q = Quaternion.LookRotation(Vector3.Cross(transform.right, newUp), newUp);
+            //     transform.rotation = q;
+            // }
         }
 
         #endregion

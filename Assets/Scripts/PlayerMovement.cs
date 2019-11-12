@@ -60,7 +60,7 @@ namespace com.tuth.neabit
 
         public override Vector3 Force()
         {
-            const float THRUST_FORCE = 48;
+            const float THRUST_FORCE = 29.5f;
             const float LATERAL_DRAG = 2;
 
             Vector3 lateral = Vector3.ProjectOnPlane(player.rb.velocity, player.transform.up);

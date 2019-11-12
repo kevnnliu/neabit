@@ -31,7 +31,7 @@ Transform:
   m_GameObject: {fileID: 1982739440847619191}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -0.319, y: -0.06054318, z: -2.069}
-  m_LocalScale: {x: 0.1, y: 0.1, z: 0.1}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
@@ -61,7 +61,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100008, guid: cd7e18e57cb93864ba56a149b2ff4f40, type: 3}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -108,8 +108,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   owner: {fileID: 0}
-  drain: 20
-  boltSpeed: 50
+  target: {x: 0, y: 0, z: 0}
+  boltSpeed: 220
 --- !u!114 &7773031001225192346
 MonoBehaviour:
   m_ObjectHideFlags: 0
