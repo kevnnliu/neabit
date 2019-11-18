@@ -48,6 +48,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   owner: {fileID: 0}
+  damage: 15
   boltSpeed: 79
   lifeSpan: 5
 --- !u!114 &1435102092729052268

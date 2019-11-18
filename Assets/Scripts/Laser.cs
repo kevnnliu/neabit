@@ -9,7 +9,7 @@ namespace com.tuth.neabit {
         #region Public Fields
 
         public GameObject owner;
-        public const float damage = 20f;
+        public float damage = 15f;
 
         #endregion
 
@@ -40,7 +40,7 @@ namespace com.tuth.neabit {
 
             RaycastHit hit;
             if (Physics.Raycast(transform.position, transform.forward, out hit, 1f)) {
-                if (hit.transform.CompareTag("Player")) {
+                if (hit.transform.root.CompareTag("Player")) {
                     PlayerManager player = hit.transform.GetComponent<PlayerManager>();
                     if (owner != hit.transform.gameObject) {
                         player.takeDamage(damage);

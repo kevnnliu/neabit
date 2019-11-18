@@ -99,7 +99,7 @@ namespace com.tuth.neabit {
                 headTrack = playerRig.headTrack;
                 leftTrack = playerRig.leftTrack;
                 rightTrack = playerRig.rightTrack;
-                GetComponent<PlayerManager>().playerCamera = playerCamera;
+                GetComponent<PlayerManager>().setCamera(playerCamera);
                 playerRig.anchor = cameraAnchor.transform;
             }
 
@@ -125,9 +125,15 @@ namespace com.tuth.neabit {
                 Debug.Log("Assisted controls: " + ASSISTED_CONTROL);
             }
 
-            // networked firing
-            if ((Input.GetKey(KeyCode.M) || getRightIndexTrigger()) && CONTROLS_ENABLED) {
-                playerManager.fire();
+            if (CONTROLS_ENABLED) {
+                // networked firing
+                if (Input.GetKey(KeyCode.M) || getRightIndexTrigger()) {
+                    playerManager.fire();
+                    playerManager.shield(false);
+                } // firing/shielding are exclusive actions, but firing takes priority
+                else {
+                    playerManager.shield((Input.GetKey(KeyCode.N) || getLeftIndexTrigger()));
+                }
             }
 
             // Stun

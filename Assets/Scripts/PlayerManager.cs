@@ -12,11 +12,13 @@ namespace com.tuth.neabit {
         public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info) {
             if (stream.IsWriting) {
                 stream.SendNext(isFiring);
-                stream.SendNext(energy);
+                stream.SendNext(health);
+                stream.SendNext(isShielding);
             }
             else {
                 this.isFiring = (bool)stream.ReceiveNext();
-                this.energy = (float)stream.ReceiveNext();
+                this.health = (float)stream.ReceiveNext();
+                this.isShielding = (bool)stream.ReceiveNext();
             }
         }
 
@@ -30,6 +32,15 @@ namespace com.tuth.neabit {
         [SerializeField]
         Transform[] shootFroms;
 
+        [SerializeField]
+        GameObject shieldObject;
+
+        [SerializeField]
+        Slider energyMeter;
+
+        [SerializeField]
+        GameObject[] displayLabels;
+
         bool isFiring;
         PlayerController playerController;
         GameManager gameManager;
@@ -37,22 +48,25 @@ namespace com.tuth.neabit {
         float laserTimeout = 0;
         float energy = 100f;
         float health = 100f;
+        bool isShielding = false;
+        GameObject playerCamera;
 
         #endregion
 
         #region Constants
 
         const float TOTAL_ENERGY = 100f;
-        const float LASER_ENERGY_COST = 0.5f;
+        const float LASER_ENERGY_COST = 0.75f;
+        const float SHIELD_ENERGY_COST = 25f;
         const float LASER_FIRERATE = 0.12f;
         const float FULL_HEALTH = 100f;
+        const float ENERGY_CHARGE_RATE = 4f;
 
         #endregion
 
         #region Public Fields
 
         public static GameObject LocalPlayerInstance;
-        public GameObject playerCamera;
         public bool CONTROLS_ENABLED = true;
         public GameInfoDisplay gameInfoDisplay;
 
@@ -81,21 +95,38 @@ namespace com.tuth.neabit {
         void Update() {
             playerController.enabled = photonView.IsMine;
 
-            if (photonView.IsMine == false && PhotonNetwork.IsConnected == true) {
-                if (playerCamera != null) {
-                    playerCamera.SetActive(false);
-                }
+            energy += ENERGY_CHARGE_RATE * Time.deltaTime;
+
+            energyMeter.value = energy / TOTAL_ENERGY;
+
+            displayLabels[0].SetActive(!isShielding);
+            displayLabels[2].SetActive(isShielding);
+
+            displayLabels[1].SetActive(!isFiring);
+            displayLabels[3].SetActive(isFiring);
+
+            if (laserTimeout > 0) {
+                laserTimeout -= Time.deltaTime;
             }
 
-            if (photonView.IsMine) {
-                energy += 3f * Time.deltaTime;
+            if (energy >= TOTAL_ENERGY) {
+                energy = TOTAL_ENERGY;
+            }
 
-                if (laserTimeout > 0) {
-                    laserTimeout -= Time.deltaTime;
+            if (isFiring && laserTimeout <= 0) {
+                foreach (Transform shootFrom in shootFroms) {
+                    laserTimeout = LASER_FIRERATE;
+                    GameObject laser = PhotonNetwork.Instantiate(laserPrefab.name, shootFrom.position, shootFrom.rotation, 0);
+                    Laser laserComp = laser.GetComponent<Laser>();
+                    laserComp.owner = this.gameObject;
+                    energy -= LASER_ENERGY_COST;
                 }
+                isFiring = false;
+            }
 
-                if (energy >= TOTAL_ENERGY) {
-                    energy = TOTAL_ENERGY;
+            if (!photonView.IsMine && PhotonNetwork.IsConnected) {
+                if (playerCamera != null) {
+                    playerCamera.SetActive(false);
                 }
             }
         }
@@ -105,26 +136,36 @@ namespace com.tuth.neabit {
         #region Public Methods
 
         public void fire() {
-            if (energy >= LASER_ENERGY_COST && laserTimeout <= 0) {
-                foreach (Transform shootFrom in shootFroms) {
-                    laserTimeout = LASER_FIRERATE;
-                    GameObject laser = PhotonNetwork.Instantiate(laserPrefab.name, shootFrom.position, shootFrom.rotation, 0);
-                    Laser laserComp = laser.GetComponent<Laser>();
-                    laserComp.owner = this.gameObject;
-                    energy -= LASER_ENERGY_COST;
-                }
+            if (energy >= LASER_ENERGY_COST) {
+                isFiring = true;
+            }
+        }
+
+        public void shield(bool amShielding) {
+            if (energy > 0 && amShielding) {
+                energy -= SHIELD_ENERGY_COST * Time.deltaTime;
+                shieldUp();
+            }
+            else {
+                shieldDown();
             }
         }
 
         public void takeDamage(float damage) {
-            if (health - damage < 0) {
-                health = FULL_HEALTH;
-                playerController.rb.velocity = Vector3.zero;
-                playerController.rb.angularVelocity = Vector3.zero;
-                gameManager.respawn(this.gameObject, actorNum);
-            } else {
-                health -= damage;
-            }
+            if (!isShielding) {
+                if (health - damage < 0) {
+                    health = FULL_HEALTH;
+                    playerController.rb.velocity = Vector3.zero;
+                    playerController.rb.angularVelocity = Vector3.zero;
+                    gameManager.respawn(this.gameObject, actorNum);
+                } else {
+                    health -= damage;
+                }
+            }  
+        }
+
+        public void setCamera(GameObject cam) {
+            playerCamera = cam;
         }
 
         #endregion
@@ -134,6 +175,20 @@ namespace com.tuth.neabit {
         void leaveGame() {
             PlayerController.CONTROLS_ENABLED = false;
             GameObject.Find("Game Manager").GetComponent<GameManager>().LeaveRoom();
+        }
+
+        void shieldUp() {
+            if (!isShielding) {
+                shieldObject.SetActive(true);
+                isShielding = true;
+            }
+        }
+
+        void shieldDown() {
+            if (isShielding) {
+                shieldObject.SetActive(false);
+                isShielding = false;
+            }
         }
 
         #endregion
