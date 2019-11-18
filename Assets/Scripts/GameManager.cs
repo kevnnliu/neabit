@@ -25,7 +25,6 @@ namespace com.tuth.neabit {
 
         byte startRaceEventCode;
         byte countdownStartEventCode;
-        byte completedRaceEventCode;
         RaiseEventOptions startRaceEventOptions;
         SendOptions startRaceSendOptions;
 
@@ -45,7 +44,6 @@ namespace com.tuth.neabit {
         void Start() {
             startRaceEventCode = 1;
             countdownStartEventCode = 2;
-            completedRaceEventCode = 3;
             startRaceEventOptions = new RaiseEventOptions { Receivers = ReceiverGroup.All };
             startRaceSendOptions = new SendOptions { Reliability = true };
 
@@ -57,7 +55,7 @@ namespace com.tuth.neabit {
             currentRoom = PhotonNetwork.CurrentRoom;
             startCountdown = 6;
 
-            spawnPlayer();
+            spawnPlayer(PhotonNetwork.LocalPlayer.ActorNumber);
 
             Debug.Log("Current: " + currentRoom.Players.Count + ", Max: " + currentRoom.MaxPlayers);
 
@@ -105,10 +103,6 @@ namespace com.tuth.neabit {
             PhotonNetwork.LeaveRoom();
         }
 
-        public void completedRaceEventCall(string playerID) {
-            PhotonNetwork.RaiseEvent(completedRaceEventCode, playerID, startRaceEventOptions, startRaceSendOptions);
-        }
-
         public void OnEvent(EventData photonEvent) {
             byte eventCode = photonEvent.Code;
             GameObject localPlayer = PlayerManager.LocalPlayerInstance;
@@ -117,7 +111,7 @@ namespace com.tuth.neabit {
             switch (eventCode) {
                 case 1:
                     // start race
-                    localPlayer.GetComponent<PlayerController>().CONTROLS_ENABLED = true;
+                    PlayerController.CONTROLS_ENABLED = true;
                     Debug.Log("Controls enabled");
                 break;
                 case 2:
@@ -125,30 +119,25 @@ namespace com.tuth.neabit {
                     localPlayer.GetComponent<PlayerManager>().gameInfoDisplay.beginCountdown(startCountdown);
                     Debug.Log("Countdown begin");
                 break;
-                case 3:
-                    // a player completed the race
-                    string playerID = (string)eventData;
-                    if (!completedRaceIDs.Contains(playerID)) {
-                        completedRaceIDs.Add(playerID);
-                        Debug.Log(playerID + " completed the race");
-                        localPlayer.GetComponent<PlayerManager>().gameInfoDisplay.gameText.text = "# " + completedRaceIDs.Count;
-                        localPlayer.GetComponent<PlayerManager>().gameInfoDisplay.gameText.CrossFadeAlpha(1f, 0f, true);
-                    } else {
-                        Debug.Log(playerID + " already completed the race!");
-                    }
-                break;
                 default:
                     // do nothing
                 break;
             }
         }
 
+        public void respawn(GameObject player, int actorNum) {
+            PhotonNetwork.Instantiate("Explosion", player.transform.position, player.transform.rotation, 0);
+            Vector3 spawnPos = playerStarts[actorNum].position;
+            Quaternion spawnRot = playerStarts[actorNum].rotation;
+            player.transform.position = spawnPos;
+            player.transform.rotation = spawnRot;
+        }
+
         #endregion
 
         #region Private Methods
 
-        void spawnPlayer() {
-            int actorNum = PhotonNetwork.LocalPlayer.ActorNumber;
+        void spawnPlayer(int actorNum) {
             Vector3 spawnPos = playerStarts[actorNum].position;
             Quaternion spawnRot = playerStarts[actorNum].rotation;
 

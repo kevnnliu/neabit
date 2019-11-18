@@ -53,6 +53,7 @@ namespace com.tuth.neabit {
         GameObject leftTrack;
         GameObject rightTrack;
         RigWrapper playerRig;
+        GameObject playerCamera;
 
         Queue<PlayerMovement> forces;
 
@@ -77,9 +78,9 @@ namespace com.tuth.neabit {
 
         #region Public Fields
 
-        public bool KEYBOARD_CONTROL = false;
-        public bool ASSISTED_CONTROL = true;
-        public bool CONTROLS_ENABLED = false;
+        public static bool KEYBOARD_CONTROL = false;
+        public static bool ASSISTED_CONTROL = true;
+        public static bool CONTROLS_ENABLED = false;
 
         #endregion
 
@@ -92,15 +93,13 @@ namespace com.tuth.neabit {
 
             // setting up camera rig
             if (PlayerManager.LocalPlayerInstance.Equals(this.gameObject)) {
-                GameObject playerCamera = Instantiate(rigPrefab, transform.position, Quaternion.identity);
+                playerCamera = Instantiate(rigPrefab, cameraAnchor.transform.position, Quaternion.identity);
                 playerRig = playerCamera.GetComponent<RigWrapper>();
                 headTrack = playerRig.headTrack;
                 leftTrack = playerRig.leftTrack;
                 rightTrack = playerRig.rightTrack;
                 GetComponent<PlayerManager>().playerCamera = playerCamera;
                 playerRig.anchor = cameraAnchor.transform;
-                playerRig.playerHUD.SetActive(true);
-                playerManager.setEnergyMeter(playerRig.playerHUD.GetComponentInChildren<Slider>());
             }
 
             //
@@ -115,7 +114,6 @@ namespace com.tuth.neabit {
 
         // Update is called once per frame
         void Update() {
-            
             // control scheme switch
             if (Input.GetKeyDown(KeyCode.Q)) {
                 KEYBOARD_CONTROL = !KEYBOARD_CONTROL;
@@ -127,9 +125,8 @@ namespace com.tuth.neabit {
             }
 
             // networked firing
-            if ((Input.GetKeyDown(KeyCode.M) || OVRInput.GetDown(OVRInput.Button.SecondaryIndexTrigger)) && CONTROLS_ENABLED) {
-                Vector3 target = headTrack.transform.position + (headTrack.transform.forward * MAX_BOLT_DISTANCE);
-                playerManager.fire(target);
+            if ((Input.GetKey(KeyCode.M) || OVRInput.Get(OVRInput.Button.SecondaryIndexTrigger)) && CONTROLS_ENABLED) {
+                playerManager.fire();
             }
 
             // Stun
@@ -307,6 +304,10 @@ namespace com.tuth.neabit {
                 thrust = iT;
             }
         }
+
+        #endregion
+
+        #region Public Methods
 
         #endregion
     }

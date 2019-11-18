@@ -25,25 +25,27 @@ namespace com.tuth.neabit {
         #region Private Fields
 
         [SerializeField]
-        GameObject boltPrefab;
+        GameObject laserPrefab;
 
         [SerializeField]
-        Transform shootFrom;
+        Transform[] shootFroms;
 
         bool isFiring;
-        int playerNumber;
         PlayerController playerController;
         GameManager gameManager;
+        int actorNum;
+        float laserTimeout = 0;
         float energy = 100f;
-        Slider energyMeter;
+        float health = 100f;
 
         #endregion
 
         #region Constants
 
-        const int LAPS_TO_WIN = 3;
         const float TOTAL_ENERGY = 100f;
-        const float BOLT_ENERGY_COST = 20f;
+        const float LASER_ENERGY_COST = 0.5f;
+        const float LASER_FIRERATE = 0.12f;
+        const float FULL_HEALTH = 100f;
 
         #endregion
 
@@ -69,56 +71,31 @@ namespace com.tuth.neabit {
         // Start is called before the first frame update
         void Start() {
             playerController = GetComponent<PlayerController>();
-            playerNumber = PhotonNetwork.LocalPlayer.ActorNumber - 1;
-            Debug.Log("I am player number " + playerNumber + " with username " + PhotonNetwork.LocalPlayer.NickName);
+            actorNum = PhotonNetwork.LocalPlayer.ActorNumber;
+            Debug.Log("I am player number " + actorNum + " with username " + PhotonNetwork.LocalPlayer.NickName);
 
             gameManager = GameObject.FindGameObjectWithTag("GameController").GetComponent<GameManager>();
         }
 
         // Update is called once per frame
         void Update() {
+            playerController.enabled = photonView.IsMine;
+
             if (photonView.IsMine == false && PhotonNetwork.IsConnected == true) {
-                playerController.enabled = false;
                 if (playerCamera != null) {
                     playerCamera.SetActive(false);
                 }
             }
 
-            if (photonView.IsMine && energyMeter != null) {
-                energyMeter.value = energy / TOTAL_ENERGY;
-
+            if (photonView.IsMine) {
                 energy += 3f * Time.deltaTime;
+
+                if (laserTimeout > 0) {
+                    laserTimeout -= Time.deltaTime;
+                }
 
                 if (energy >= TOTAL_ENERGY) {
                     energy = TOTAL_ENERGY;
-                }
-            }
-        }
-
-        void OnTriggerEnter(Collider other) {
-            if (!photonView.IsMine) {
-                return;
-            }
-            if (other.CompareTag("Bolt")) {
-                EMPBolt bolt = other.GetComponent<EMPBolt>();
-                if (bolt.owner != this.gameObject) {
-                    if (energy - bolt.getDrain() < 0) {
-                        energy = 0;
-                    } else {
-                        energy -= bolt.getDrain();
-                    }
-                    PhotonNetwork.Destroy(other.gameObject);
-                }
-            } else if (other.CompareTag("Checkpoint")) {
-                Checkpoint checkpoint = other.GetComponent<Checkpoint>();
-                if (checkpoint.laps >= LAPS_TO_WIN) {
-                    gameManager.completedRaceEventCall(PhotonNetwork.LocalPlayer.UserId);
-                } else {
-                    if (checkpoint.isEnabled) {
-                        checkpoint.isEnabled = false;
-                        checkpoint.nextCheckpoint.isEnabled = true;
-                        checkpoint.laps += 1;
-                    }
                 }
             }
         }
@@ -127,18 +104,27 @@ namespace com.tuth.neabit {
 
         #region Public Methods
 
-        public void fire(Vector3 target) {
-            if (energy >= BOLT_ENERGY_COST) {
-                GameObject bolt = PhotonNetwork.Instantiate(boltPrefab.name, shootFrom.position, Quaternion.identity, 0);
-                EMPBolt boltComp = bolt.GetComponent<EMPBolt>();
-                boltComp.target = target;
-                boltComp.owner = this.gameObject;
-                energy -= BOLT_ENERGY_COST;
+        public void fire() {
+            if (energy >= LASER_ENERGY_COST && laserTimeout <= 0) {
+                foreach (Transform shootFrom in shootFroms) {
+                    laserTimeout = LASER_FIRERATE;
+                    GameObject laser = PhotonNetwork.Instantiate(laserPrefab.name, shootFrom.position, shootFrom.rotation, 0);
+                    Laser laserComp = laser.GetComponent<Laser>();
+                    laserComp.owner = this.gameObject;
+                    energy -= LASER_ENERGY_COST;
+                }
             }
         }
 
-        public void setEnergyMeter(Slider meter) {
-            energyMeter = meter;
+        public void takeDamage(float damage) {
+            if (health - damage < 0) {
+                health = FULL_HEALTH;
+                playerController.rb.velocity = Vector3.zero;
+                playerController.rb.angularVelocity = Vector3.zero;
+                gameManager.respawn(this.gameObject, actorNum);
+            } else {
+                health -= damage;
+            }
         }
 
         #endregion
@@ -146,6 +132,7 @@ namespace com.tuth.neabit {
         #region Private Methods
 
         void leaveGame() {
+            PlayerController.CONTROLS_ENABLED = false;
             GameObject.Find("Game Manager").GetComponent<GameManager>().LeaveRoom();
         }
 

@@ -13,7 +13,6 @@ namespace com.tuth.neabit {
         public GameObject rightTrack;
         public Transform anchor;
         public Quaternion anchorYaw;
-        public GameObject playerHUD;
 
         #endregion
 
@@ -36,14 +35,13 @@ namespace com.tuth.neabit {
 
         // Update is called once per frame
         void Update() {
-            // leave game
             leaveButton.interactable = OVRInput.Get(OVRInput.Button.Start, OVRInput.Controller.LTouch) || Input.GetKey(KeyCode.P);
         }
 
         void LateUpdate() {
             if (anchor != null) {
                 transform.position = anchor.position;
-                if (anchor.parent.GetComponent<PlayerController>().ASSISTED_CONTROL) {
+                if (PlayerController.ASSISTED_CONTROL) {
                     transform.rotation = anchorYaw;
                 } else {
                     transform.rotation = anchor.parent.rotation * Quaternion.Euler(-90f, 0f, 180f);
