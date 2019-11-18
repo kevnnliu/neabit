@@ -55,7 +55,7 @@ namespace com.tuth.neabit {
             currentRoom = PhotonNetwork.CurrentRoom;
             startCountdown = 6;
 
-            spawnPlayer();
+            spawnPlayer(PhotonNetwork.LocalPlayer.ActorNumber);
 
             Debug.Log("Current: " + currentRoom.Players.Count + ", Max: " + currentRoom.MaxPlayers);
 
@@ -111,7 +111,7 @@ namespace com.tuth.neabit {
             switch (eventCode) {
                 case 1:
                     // start race
-                    localPlayer.GetComponent<PlayerController>().CONTROLS_ENABLED = true;
+                    PlayerController.CONTROLS_ENABLED = true;
                     Debug.Log("Controls enabled");
                 break;
                 case 2:
@@ -125,16 +125,18 @@ namespace com.tuth.neabit {
             }
         }
 
-        public void respawn(GameObject player) {
-            
+        public void respawn(GameObject player, int actorNum) {
+            Vector3 spawnPos = playerStarts[actorNum].position;
+            Quaternion spawnRot = playerStarts[actorNum].rotation;
+            player.transform.position = spawnPos;
+            player.transform.rotation = spawnRot;
         }
 
         #endregion
 
         #region Private Methods
 
-        void spawnPlayer() {
-            int actorNum = PhotonNetwork.LocalPlayer.ActorNumber;
+        void spawnPlayer(int actorNum) {
             Vector3 spawnPos = playerStarts[actorNum].position;
             Quaternion spawnRot = playerStarts[actorNum].rotation;
 

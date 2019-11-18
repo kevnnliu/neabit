@@ -31,7 +31,6 @@ namespace com.tuth.neabit {
         Transform[] shootFroms;
 
         bool isFiring;
-        int playerNumber;
         PlayerController playerController;
         GameManager gameManager;
         float laserTimeout = 0;
@@ -45,6 +44,7 @@ namespace com.tuth.neabit {
         const float TOTAL_ENERGY = 100f;
         const float LASER_ENERGY_COST = 0.5f;
         const float LASER_FIRERATE = 0.1f;
+        const float FULL_HEALTH = 100f;
 
         #endregion
 
@@ -54,6 +54,7 @@ namespace com.tuth.neabit {
         public GameObject playerCamera;
         public bool CONTROLS_ENABLED = true;
         public GameInfoDisplay gameInfoDisplay;
+        public int playerNumber;
 
         #endregion
 
@@ -78,8 +79,9 @@ namespace com.tuth.neabit {
 
         // Update is called once per frame
         void Update() {
+            playerController.enabled = photonView.IsMine;
+
             if (photonView.IsMine == false && PhotonNetwork.IsConnected == true) {
-                playerController.enabled = false;
                 if (playerCamera != null) {
                     playerCamera.SetActive(false);
                 }
@@ -96,6 +98,9 @@ namespace com.tuth.neabit {
                     energy = TOTAL_ENERGY;
                 }
             }
+
+            Debug.Log(health);
+            takeDamage(Time.deltaTime * 10);
         }
 
         #endregion
@@ -116,8 +121,8 @@ namespace com.tuth.neabit {
 
         public void takeDamage(float damage) {
             if (health - damage < 0) {
-                health = 0;
-                gameManager.respawn(this.gameObject);
+                health = FULL_HEALTH;
+                gameManager.respawn(this.gameObject, playerNumber);
             } else {
                 health -= damage;
             }
@@ -128,6 +133,7 @@ namespace com.tuth.neabit {
         #region Private Methods
 
         void leaveGame() {
+            PlayerController.CONTROLS_ENABLED = false;
             GameObject.Find("Game Manager").GetComponent<GameManager>().LeaveRoom();
         }
 

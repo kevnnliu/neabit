@@ -42,7 +42,7 @@ namespace com.tuth.neabit {
         void LateUpdate() {
             if (anchor != null) {
                 transform.position = anchor.position;
-                if (anchor.parent.GetComponent<PlayerController>().ASSISTED_CONTROL) {
+                if (PlayerController.ASSISTED_CONTROL) {
                     transform.rotation = anchorYaw;
                 } else {
                     transform.rotation = anchor.parent.rotation * Quaternion.Euler(-90f, 0f, 180f);

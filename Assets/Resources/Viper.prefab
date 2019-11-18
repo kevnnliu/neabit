@@ -255,6 +255,7 @@ MonoBehaviour:
   playerCamera: {fileID: 0}
   CONTROLS_ENABLED: 1
   gameInfoDisplay: {fileID: 3209433788797017123}
+  playerNumber: 0
 --- !u!114 &8013361554796872956
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -279,9 +280,6 @@ MonoBehaviour:
   turnSensitivity: 0.022
   dragCoeff: 200
   dragFactor: 2
-  KEYBOARD_CONTROL: 0
-  ASSISTED_CONTROL: 1
-  CONTROLS_ENABLED: 0
 --- !u!114 &8941876801094764701
 MonoBehaviour:
   m_ObjectHideFlags: 0

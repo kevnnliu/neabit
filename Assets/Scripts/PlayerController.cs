@@ -53,6 +53,7 @@ namespace com.tuth.neabit {
         GameObject leftTrack;
         GameObject rightTrack;
         RigWrapper playerRig;
+        GameObject playerCamera;
 
         Queue<PlayerMovement> forces;
 
@@ -77,9 +78,9 @@ namespace com.tuth.neabit {
 
         #region Public Fields
 
-        public bool KEYBOARD_CONTROL = false;
-        public bool ASSISTED_CONTROL = true;
-        public bool CONTROLS_ENABLED = false;
+        public static bool KEYBOARD_CONTROL = false;
+        public static bool ASSISTED_CONTROL = true;
+        public static bool CONTROLS_ENABLED = false;
 
         #endregion
 
@@ -92,7 +93,7 @@ namespace com.tuth.neabit {
 
             // setting up camera rig
             if (PlayerManager.LocalPlayerInstance.Equals(this.gameObject)) {
-                GameObject playerCamera = Instantiate(rigPrefab, cameraAnchor.transform.position, Quaternion.identity);
+                playerCamera = Instantiate(rigPrefab, cameraAnchor.transform.position, Quaternion.identity);
                 playerRig = playerCamera.GetComponent<RigWrapper>();
                 headTrack = playerRig.headTrack;
                 leftTrack = playerRig.leftTrack;
@@ -109,6 +110,10 @@ namespace com.tuth.neabit {
             boosting = false;
             stunned = 0;
             rb.maxAngularVelocity = 0;
+        }
+        
+        void OnDestroy() {
+            Destroy(playerCamera);
         }
 
         // Update is called once per frame
