@@ -35,7 +35,6 @@ namespace com.tuth.neabit {
 
         // Update is called once per frame
         void Update() {
-            // leave game
             leaveButton.interactable = OVRInput.Get(OVRInput.Button.Start, OVRInput.Controller.LTouch) || Input.GetKey(KeyCode.P);
         }
 

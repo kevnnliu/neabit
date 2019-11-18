@@ -126,6 +126,7 @@ namespace com.tuth.neabit {
         }
 
         public void respawn(GameObject player, int actorNum) {
+            PhotonNetwork.Instantiate("Explosion", player.transform.position, player.transform.rotation, 0);
             Vector3 spawnPos = playerStarts[actorNum].position;
             Quaternion spawnRot = playerStarts[actorNum].rotation;
             player.transform.position = spawnPos;

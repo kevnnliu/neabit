@@ -111,14 +111,9 @@ namespace com.tuth.neabit {
             stunned = 0;
             rb.maxAngularVelocity = 0;
         }
-        
-        void OnDestroy() {
-            Destroy(playerCamera);
-        }
 
         // Update is called once per frame
         void Update() {
-            
             // control scheme switch
             if (Input.GetKeyDown(KeyCode.Q)) {
                 KEYBOARD_CONTROL = !KEYBOARD_CONTROL;
@@ -309,6 +304,10 @@ namespace com.tuth.neabit {
                 thrust = iT;
             }
         }
+
+        #endregion
+
+        #region Public Methods
 
         #endregion
     }
