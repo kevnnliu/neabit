@@ -25,25 +25,26 @@ namespace com.tuth.neabit {
         #region Private Fields
 
         [SerializeField]
-        GameObject boltPrefab;
+        GameObject laserPrefab;
 
         [SerializeField]
-        Transform shootFrom;
+        Transform[] shootFroms;
 
         bool isFiring;
         int playerNumber;
         PlayerController playerController;
         GameManager gameManager;
+        float laserTimeout = 0;
         float energy = 100f;
-        Slider energyMeter;
+        float health = 100f;
 
         #endregion
 
         #region Constants
 
-        const int LAPS_TO_WIN = 1;
         const float TOTAL_ENERGY = 100f;
-        const float BOLT_ENERGY_COST = 20f;
+        const float LASER_ENERGY_COST = 0.5f;
+        const float LASER_FIRERATE = 0.1f;
 
         #endregion
 
@@ -84,42 +85,15 @@ namespace com.tuth.neabit {
                 }
             }
 
-            if (photonView.IsMine && energyMeter != null) {
-                energyMeter.value = energy / TOTAL_ENERGY;
-
+            if (photonView.IsMine) {
                 energy += 3f * Time.deltaTime;
+
+                if (laserTimeout > 0) {
+                    laserTimeout -= Time.deltaTime;
+                }
 
                 if (energy >= TOTAL_ENERGY) {
                     energy = TOTAL_ENERGY;
-                }
-            }
-        }
-
-        void OnTriggerEnter(Collider other) {
-            if (!photonView.IsMine) {
-                return;
-            }
-            if (other.CompareTag("Bolt")) {
-                EMPBolt bolt = other.GetComponent<EMPBolt>();
-                if (bolt.owner != this.gameObject) {
-                    if (energy - bolt.getDrain() < 0) {
-                        energy = 0;
-                    } else {
-                        energy -= bolt.getDrain();
-                    }
-                    PhotonNetwork.Destroy(other.gameObject);
-                }
-            } else if (other.CompareTag("Checkpoint")) {
-                Checkpoint checkpoint = other.GetComponent<Checkpoint>();
-                if (checkpoint.laps + 1 >= LAPS_TO_WIN && checkpoint.isEnd) {
-                    checkpoint.isEnabled = false;
-                    gameManager.completedRaceEventCall(PhotonNetwork.LocalPlayer.UserId);
-                } else {
-                    if (checkpoint.isEnabled) {
-                        checkpoint.isEnabled = false;
-                        checkpoint.nextCheckpoint.isEnabled = true;
-                        checkpoint.laps += 1;
-                    }
                 }
             }
         }
@@ -128,18 +102,25 @@ namespace com.tuth.neabit {
 
         #region Public Methods
 
-        public void fire(Vector3 target) {
-            if (energy >= BOLT_ENERGY_COST) {
-                GameObject bolt = PhotonNetwork.Instantiate(boltPrefab.name, shootFrom.position, Quaternion.identity, 0);
-                EMPBolt boltComp = bolt.GetComponent<EMPBolt>();
-                boltComp.target = target;
-                boltComp.owner = this.gameObject;
-                energy -= BOLT_ENERGY_COST;
+        public void fire() {
+            if (energy >= LASER_ENERGY_COST && laserTimeout <= 0) {
+                foreach (Transform shootFrom in shootFroms) {
+                    laserTimeout = LASER_FIRERATE;
+                    GameObject laser = PhotonNetwork.Instantiate(laserPrefab.name, shootFrom.position, shootFrom.rotation, 0);
+                    Laser laserComp = laser.GetComponent<Laser>();
+                    laserComp.owner = this.gameObject;
+                    energy -= LASER_ENERGY_COST;
+                }
             }
         }
 
-        public void setEnergyMeter(Slider meter) {
-            energyMeter = meter;
+        public void takeDamage(float damage) {
+            if (health - damage < 0) {
+                health = 0;
+                gameManager.respawn(this.gameObject);
+            } else {
+                health -= damage;
+            }
         }
 
         #endregion

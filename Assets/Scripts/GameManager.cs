@@ -25,7 +25,6 @@ namespace com.tuth.neabit {
 
         byte startRaceEventCode;
         byte countdownStartEventCode;
-        byte completedRaceEventCode;
         RaiseEventOptions startRaceEventOptions;
         SendOptions startRaceSendOptions;
 
@@ -45,7 +44,6 @@ namespace com.tuth.neabit {
         void Start() {
             startRaceEventCode = 1;
             countdownStartEventCode = 2;
-            completedRaceEventCode = 3;
             startRaceEventOptions = new RaiseEventOptions { Receivers = ReceiverGroup.All };
             startRaceSendOptions = new SendOptions { Reliability = true };
 
@@ -105,10 +103,6 @@ namespace com.tuth.neabit {
             PhotonNetwork.LeaveRoom();
         }
 
-        public void completedRaceEventCall(string playerID) {
-            PhotonNetwork.RaiseEvent(completedRaceEventCode, playerID, startRaceEventOptions, startRaceSendOptions);
-        }
-
         public void OnEvent(EventData photonEvent) {
             byte eventCode = photonEvent.Code;
             GameObject localPlayer = PlayerManager.LocalPlayerInstance;
@@ -125,22 +119,14 @@ namespace com.tuth.neabit {
                     localPlayer.GetComponent<PlayerManager>().gameInfoDisplay.beginCountdown(startCountdown);
                     Debug.Log("Countdown begin");
                 break;
-                case 3:
-                    // a player completed the race
-                    string playerID = (string)eventData;
-                    if (!completedRaceIDs.Contains(playerID)) {
-                        completedRaceIDs.Add(playerID);
-                        Debug.Log(playerID + " completed the race");
-                        localPlayer.GetComponent<PlayerManager>().gameInfoDisplay.gameText.text = "# " + completedRaceIDs.Count;
-                        localPlayer.GetComponent<PlayerManager>().gameInfoDisplay.gameText.CrossFadeAlpha(1f, 0f, true);
-                    } else {
-                        Debug.Log(playerID + " already completed the race!");
-                    }
-                break;
                 default:
                     // do nothing
                 break;
             }
+        }
+
+        public void respawn(GameObject player) {
+            
         }
 
         #endregion

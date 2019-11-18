@@ -120,7 +120,7 @@ Transform:
   m_GameObject: {fileID: 141316}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 20, y: 20, z: 20}
   m_Children:
   - {fileID: 453352}
   m_Father: {fileID: 0}
@@ -154,7 +154,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a718c138b20419b499c3d92b17e6ff7a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  tumble: 0.25
+  tumble: 0.05
 --- !u!1 &146874
 GameObject:
   m_ObjectHideFlags: 0
@@ -166,7 +166,6 @@ GameObject:
   - component: {fileID: 431242}
   - component: {fileID: 3326240}
   - component: {fileID: 2336382}
-  - component: {fileID: 3951043740839937910}
   m_Layer: 0
   m_Name: test_asteroid2_LOD1
   m_TagString: Untagged
@@ -234,20 +233,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
---- !u!64 &3951043740839937910
-MeshCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 146874}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Convex: 1
-  m_CookingOptions: 14
-  m_Mesh: {fileID: 4300000, guid: f6c9079cd95ba7c4f967cb514398f38f, type: 3}
 --- !u!1 &175136
 GameObject:
   m_ObjectHideFlags: 0
@@ -259,7 +244,6 @@ GameObject:
   - component: {fileID: 499402}
   - component: {fileID: 3333138}
   - component: {fileID: 2329180}
-  - component: {fileID: 2418333678807889985}
   m_Layer: 0
   m_Name: test_asteroid2_LOD2
   m_TagString: Untagged
@@ -327,20 +311,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
---- !u!64 &2418333678807889985
-MeshCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 175136}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Convex: 1
-  m_CookingOptions: 14
-  m_Mesh: {fileID: 4300000, guid: 4fc98ba1e54e0f64aa2c95885ef7026e, type: 3}
 --- !u!1 &185484
 GameObject:
   m_ObjectHideFlags: 0

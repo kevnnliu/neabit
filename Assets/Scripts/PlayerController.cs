@@ -99,8 +99,6 @@ namespace com.tuth.neabit {
                 rightTrack = playerRig.rightTrack;
                 GetComponent<PlayerManager>().playerCamera = playerCamera;
                 playerRig.anchor = cameraAnchor.transform;
-                playerRig.playerHUD.SetActive(true);
-                playerManager.setEnergyMeter(playerRig.playerHUD.GetComponentInChildren<Slider>());
             }
 
             //
@@ -127,10 +125,9 @@ namespace com.tuth.neabit {
             }
 
             // networked firing
-            // if ((Input.GetKeyDown(KeyCode.M) || OVRInput.GetDown(OVRInput.Button.SecondaryIndexTrigger)) && CONTROLS_ENABLED) {
-            //     Vector3 target = headTrack.transform.position + (headTrack.transform.forward * MAX_BOLT_DISTANCE);
-            //     playerManager.fire(target);
-            // }
+            if ((Input.GetKey(KeyCode.M) || OVRInput.Get(OVRInput.Button.SecondaryIndexTrigger)) && CONTROLS_ENABLED) {
+                playerManager.fire();
+            }
 
             // Stun
             stunned = Mathf.Clamp(stunned - Time.deltaTime, 0, 3600);
