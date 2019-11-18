@@ -62,6 +62,7 @@ namespace com.tuth.neabit {
         #region Constants
 
         const float MAX_BOLT_DISTANCE = 60f;
+        const float TRIGGER_THRESHOLD = 0.3f;
 
         #endregion
 
@@ -125,7 +126,7 @@ namespace com.tuth.neabit {
             }
 
             // networked firing
-            if ((Input.GetKey(KeyCode.M) || OVRInput.Get(OVRInput.Button.SecondaryIndexTrigger)) && CONTROLS_ENABLED) {
+            if ((Input.GetKey(KeyCode.M) || getRightIndexTrigger()) && CONTROLS_ENABLED) {
                 playerManager.fire();
             }
 
@@ -249,7 +250,7 @@ namespace com.tuth.neabit {
             float iP = KEYBOARD_CONTROL ? Input.GetAxis("Vertical") * 90f : -calculateTheta(averageHandP, headP - shoulderOffset, false);
             float iY = KEYBOARD_CONTROL ? Input.GetAxis("HorizontalAlt") * 90f : calculateTheta(averageHandP, headP - shoulderOffset, true);
 
-            bool iT = KEYBOARD_CONTROL ? Input.GetKey(KeyCode.Space) : getLeftHandTrigger() > 0.3f;
+            bool iT = KEYBOARD_CONTROL ? Input.GetKey(KeyCode.Space) : getLeftHandTrigger();
 
             if (float.IsNaN(iB) || float.IsNaN(iP) || float.IsNaN(iY)) {
                 return new Inputs(0, 0, 0, false);
@@ -271,8 +272,20 @@ namespace com.tuth.neabit {
             }
         }
 
-        float getLeftHandTrigger() {
-            return OVRInput.Get(OVRInput.Axis1D.PrimaryHandTrigger);
+        bool getLeftHandTrigger() {
+            return OVRInput.Get(OVRInput.Axis1D.PrimaryHandTrigger) > TRIGGER_THRESHOLD;
+        }
+
+        bool getRightHandTrigger() {
+            return OVRInput.Get(OVRInput.Axis1D.SecondaryHandTrigger) > TRIGGER_THRESHOLD;
+        }
+
+        bool getRightIndexTrigger() {
+            return OVRInput.Get(OVRInput.Button.SecondaryIndexTrigger);
+        }
+
+        bool getLeftIndexTrigger() {
+            return OVRInput.Get(OVRInput.Button.PrimaryIndexTrigger);
         }
 
         // for assisted control scheme
