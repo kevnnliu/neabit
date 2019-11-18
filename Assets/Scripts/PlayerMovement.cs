@@ -32,8 +32,8 @@ namespace com.tuth.neabit
         public override Vector3 Force()
         {
             const float BASE_DRAG = 18;
-            const float DRAG_THRESHOLD = 22;
-            const float DRAG_FACTOR = (28 - BASE_DRAG) / (28 - DRAG_THRESHOLD);
+            const float DRAG_THRESHOLD = 18;
+            const float DRAG_FACTOR = (22 - BASE_DRAG) / (22 - DRAG_THRESHOLD);
 
             float speed = player.rb.velocity.magnitude;
             if (speed < BASE_DRAG * Time.deltaTime)
@@ -60,8 +60,8 @@ namespace com.tuth.neabit
 
         public override Vector3 Force()
         {
-            const float THRUST_FORCE = 28;
-            const float LATERAL_DRAG = 1;
+            const float THRUST_FORCE = 22;
+            const float LATERAL_DRAG = 2f;
 
             Vector3 lateral = Vector3.ProjectOnPlane(player.rb.velocity, player.transform.up);
             return THRUST_FORCE * player.transform.up - LATERAL_DRAG * lateral;
