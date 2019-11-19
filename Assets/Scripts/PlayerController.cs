@@ -56,6 +56,7 @@ namespace com.tuth.neabit {
         GameObject playerCamera;
 
         Queue<PlayerMovement> forces;
+        Vector3 lastRotation;
 
         #endregion
 
@@ -96,6 +97,7 @@ namespace com.tuth.neabit {
             if (PlayerManager.LocalPlayerInstance.Equals(this.gameObject)) {
                 playerCamera = Instantiate(rigPrefab, cameraAnchor.transform.position, Quaternion.identity);
                 playerRig = playerCamera.GetComponent<RigWrapper>();
+                playerRig.setPlayerManager(playerManager);
                 headTrack = playerRig.headTrack;
                 leftTrack = playerRig.leftTrack;
                 rightTrack = playerRig.rightTrack;
@@ -111,6 +113,8 @@ namespace com.tuth.neabit {
             boosting = false;
             stunned = 0;
             rb.maxAngularVelocity = 0;
+
+            lastRotation = transform.rotation.eulerAngles;
         }
 
         // Update is called once per frame
@@ -128,13 +132,18 @@ namespace com.tuth.neabit {
             if (CONTROLS_ENABLED) {
                 // networked firing
                 if (Input.GetKey(KeyCode.M) || getRightIndexTrigger()) {
-                    playerManager.fire();
+                    Vector3 angularVelocity = (transform.rotation.eulerAngles - lastRotation) / Time.deltaTime;
+                    playerManager.fire(angularVelocity);
                     playerManager.shield(false);
                 } // firing/shielding are exclusive actions, but firing takes priority
                 else {
                     playerManager.shield((Input.GetKey(KeyCode.N) || getLeftIndexTrigger()));
                 }
             }
+
+            lastRotation = transform.rotation.eulerAngles;
+
+            Debug.Log(rb.angularVelocity);
 
             // Stun
             stunned = Mathf.Clamp(stunned - Time.deltaTime, 0, 3600);

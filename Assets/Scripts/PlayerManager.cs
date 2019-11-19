@@ -24,6 +24,20 @@ namespace com.tuth.neabit {
 
         #endregion
 
+        #region Static Fields
+
+        static bool ROTATIONAL_AIM_COMPENSATION = true;
+        static float LASER_COMPENSATION_COEFF = 3f;
+
+        static Dictionary<string, int> fieldIndex = new Dictionary<string, int>()
+        {
+            {"Nickname", 0},
+            {"Kills", 1},
+            {"Deaths", 2}
+        };
+
+        #endregion
+
         #region Private Fields
 
         [SerializeField]
@@ -39,7 +53,10 @@ namespace com.tuth.neabit {
         Slider energyMeter;
 
         [SerializeField]
-        GameObject[] displayLabels;
+        Text[] gameDisplay;
+
+        [SerializeField]
+        Text[] scoreDisplay;
 
         bool isFiring;
         PlayerController playerController;
@@ -50,6 +67,9 @@ namespace com.tuth.neabit {
         float health = 100f;
         bool isShielding = false;
         GameObject playerCamera;
+        Dictionary<string, string> playerScore = new Dictionary<string, string>();
+        string playerID;
+        Quaternion laserRotationalCompensation;
 
         #endregion
 
@@ -69,6 +89,8 @@ namespace com.tuth.neabit {
         public static GameObject LocalPlayerInstance;
         public bool CONTROLS_ENABLED = true;
         public GameInfoDisplay gameInfoDisplay;
+        public GameObject gameDisplayContainer;
+        public GameObject scoreDisplayContainer;
 
         #endregion
 
@@ -89,6 +111,9 @@ namespace com.tuth.neabit {
             Debug.Log("I am player number " + actorNum + " with username " + PhotonNetwork.LocalPlayer.NickName);
 
             gameManager = GameObject.FindGameObjectWithTag("GameController").GetComponent<GameManager>();
+            playerID = PhotonNetwork.LocalPlayer.UserId;
+            
+            initializeScore();
         }
 
         // Update is called once per frame
@@ -99,11 +124,7 @@ namespace com.tuth.neabit {
 
             energyMeter.value = energy / TOTAL_ENERGY;
 
-            displayLabels[0].SetActive(!isShielding);
-            displayLabels[2].SetActive(isShielding);
-
-            displayLabels[1].SetActive(!isFiring);
-            displayLabels[3].SetActive(isFiring);
+            updateDisplay();
 
             if (laserTimeout > 0) {
                 laserTimeout -= Time.deltaTime;
@@ -116,7 +137,10 @@ namespace com.tuth.neabit {
             if (isFiring && laserTimeout <= 0) {
                 foreach (Transform shootFrom in shootFroms) {
                     laserTimeout = LASER_FIRERATE;
-                    GameObject laser = PhotonNetwork.Instantiate(laserPrefab.name, shootFrom.position, shootFrom.rotation, 0);
+                    Quaternion compensatedAngle = shootFrom.rotation * laserRotationalCompensation;
+                    Quaternion laserAngle = ROTATIONAL_AIM_COMPENSATION ? compensatedAngle : shootFrom.rotation;
+
+                    GameObject laser = PhotonNetwork.Instantiate(laserPrefab.name, shootFrom.position, laserAngle, 0);
                     Laser laserComp = laser.GetComponent<Laser>();
                     laserComp.owner = this.gameObject;
                     energy -= LASER_ENERGY_COST;
@@ -135,9 +159,10 @@ namespace com.tuth.neabit {
 
         #region Public Methods
 
-        public void fire() {
+        public void fire(Vector3 angularVelocity) {
             if (energy >= LASER_ENERGY_COST) {
                 isFiring = true;
+                laserRotationalCompensation = Quaternion.Euler(angularVelocity * LASER_COMPENSATION_COEFF);
             }
         }
 
@@ -151,9 +176,12 @@ namespace com.tuth.neabit {
             }
         }
 
-        public void takeDamage(float damage) {
+        public void takeDamage(float damage, GameObject attacker) {
             if (!isShielding) {
                 if (health - damage < 0) {
+                    attacker.GetComponent<PlayerManager>().addKill();
+                    addDeath();
+
                     health = FULL_HEALTH;
                     playerController.rb.velocity = Vector3.zero;
                     playerController.rb.angularVelocity = Vector3.zero;
@@ -164,6 +192,26 @@ namespace com.tuth.neabit {
             }  
         }
 
+        public void addKill() {
+            int kills = int.Parse(playerScore["Kills"]);
+            kills += 1;
+            playerScore["Kills"] = kills.ToString();
+        }
+
+        public void addDeath() {
+            int deaths = int.Parse(playerScore["Deaths"]);
+            deaths += 1;
+            playerScore["Deaths"] = deaths.ToString();
+        }
+
+        public string getPlayerID() {
+            return playerID;
+        }
+
+        public Dictionary<string, string> getPlayerScore() {
+            return playerScore;
+        }
+
         public void setCamera(GameObject cam) {
             playerCamera = cam;
         }
@@ -171,6 +219,33 @@ namespace com.tuth.neabit {
         #endregion
 
         #region Private Methods
+
+        void updateDisplay() {
+            gameDisplay[0].enabled = !isShielding;
+            gameDisplay[1].enabled = isShielding;
+
+            gameDisplay[2].enabled = !isFiring;
+            gameDisplay[3].enabled = isFiring;
+
+            Dictionary<string, Dictionary<string, string>> scoreboard = gameManager.getScoreboard();
+            
+            scoreDisplay[0].text = "Player Name:";
+            scoreDisplay[1].text = "Kills:";
+            scoreDisplay[2].text = "Deaths";
+
+            foreach (string playerID in scoreboard.Keys) {
+                Dictionary<string, string> playerScore = scoreboard[playerID];
+                foreach (string field in playerScore.Keys) {
+                    scoreDisplay[fieldIndex[field]].text += "\n" + playerScore[field];
+                }
+            }
+        }
+
+        void initializeScore() {
+            playerScore["Nickname"] = PhotonNetwork.LocalPlayer.NickName;
+            playerScore["Kills"] = "0";
+            playerScore["Deaths"] = "0";
+        }
 
         void leaveGame() {
             PlayerController.CONTROLS_ENABLED = false;

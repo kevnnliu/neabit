@@ -27,6 +27,7 @@ namespace com.tuth.neabit {
         byte countdownStartEventCode;
         RaiseEventOptions startRaceEventOptions;
         SendOptions startRaceSendOptions;
+        Dictionary<string, Dictionary<string, string>> scoreboard = new Dictionary<string, Dictionary<string, string>>();
 
         [SerializeField]
         int launcherBuildIndex;
@@ -73,11 +74,18 @@ namespace com.tuth.neabit {
 
             if (isGame && startCountdown > 0) {
                 startCountdown -= Time.deltaTime;
-                Debug.Log(startCountdown);
+                // Debug.Log(startCountdown);
                 if (startCountdown <= 0) {
                     startRaceEventCall();
                     isGame = false;
                 }
+            }
+
+            foreach (GameObject playerObject in GameObject.FindGameObjectsWithTag("Player")) {
+                PlayerManager playerManager = playerObject.GetComponent<PlayerManager>();
+                Dictionary<string, string> playerScore = playerManager.getPlayerScore();
+                string playerID = playerManager.getPlayerID();
+                scoreboard[playerID] = playerScore;
             }
 
         }
@@ -131,6 +139,10 @@ namespace com.tuth.neabit {
             Quaternion spawnRot = playerStarts[actorNum].rotation;
             player.transform.position = spawnPos;
             player.transform.rotation = spawnRot;
+        }
+
+        public Dictionary<string, Dictionary<string, string>> getScoreboard() {
+            return scoreboard;
         }
 
         #endregion

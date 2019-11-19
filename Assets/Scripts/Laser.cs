@@ -43,7 +43,7 @@ namespace com.tuth.neabit {
                 if (hit.transform.root.CompareTag("Player")) {
                     PlayerManager player = hit.transform.GetComponent<PlayerManager>();
                     if (owner != hit.transform.gameObject) {
-                        player.takeDamage(damage);
+                        player.takeDamage(damage, owner);
                     }
                     PhotonNetwork.Destroy(this.gameObject);
                 } else {

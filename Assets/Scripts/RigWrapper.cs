@@ -22,6 +22,7 @@ namespace com.tuth.neabit {
         Button leaveButton;
 
         Vector3 offset;
+        PlayerManager playerManager;
 
         #endregion
 
@@ -35,7 +36,9 @@ namespace com.tuth.neabit {
 
         // Update is called once per frame
         void Update() {
-            leaveButton.interactable = OVRInput.Get(OVRInput.Button.Start, OVRInput.Controller.LTouch) || Input.GetKey(KeyCode.P);
+            bool showInfo = OVRInput.Get(OVRInput.Button.Start, OVRInput.Controller.LTouch) || Input.GetKey(KeyCode.P);
+
+            updateUI(showInfo);
         }
 
         void LateUpdate() {
@@ -51,6 +54,19 @@ namespace com.tuth.neabit {
 
         #endregion
 
+        #region Private Methods
+
+        void updateUI(bool showInfo) {
+            leaveButton.interactable = showInfo;
+            
+            if (playerManager != null) {
+                playerManager.scoreDisplayContainer.SetActive(showInfo);
+                playerManager.gameDisplayContainer.SetActive(!showInfo);
+            }
+        }
+
+        #endregion
+
         #region Public Methods
 
         public void onClickLeave() {
@@ -61,6 +77,10 @@ namespace com.tuth.neabit {
             } else {
                 gm.GetComponent<GameManager>().LeaveRoom();
             }
+        }
+
+        public void setPlayerManager(PlayerManager playerManager) {
+            this.playerManager = playerManager;
         }
 
         #endregion
