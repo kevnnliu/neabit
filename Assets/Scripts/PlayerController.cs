@@ -15,15 +15,6 @@ namespace com.tuth.neabit {
         GameObject rigPrefab;
 
         [SerializeField]
-        float maxThrust;
-
-        [SerializeField]
-        float thrustRate;
-
-        [SerializeField]
-        float maxVThrust;
-
-        [SerializeField]
         float maxYaw;
 
         [SerializeField]
@@ -34,14 +25,6 @@ namespace com.tuth.neabit {
 
         [SerializeField]
         float turnSensitivity;
-
-        // Physics
-
-        [SerializeField]
-        float dragCoeff;
-
-        [SerializeField]
-        float dragFactor;
 
         #endregion
 
@@ -60,12 +43,10 @@ namespace com.tuth.neabit {
 
         Queue<PlayerMovement> forces;
 
-
         #endregion
 
         #region Constants
 
-        const float MAX_BOLT_DISTANCE = 60f;
         const float TRIGGER_THRESHOLD = 0.3f;
 
         #endregion
@@ -129,6 +110,8 @@ namespace com.tuth.neabit {
                 ASSISTED_CONTROL = !ASSISTED_CONTROL;
                 Debug.Log("Assisted controls: " + ASSISTED_CONTROL);
             }
+
+            Debug.Log(rb.velocity.magnitude);
 
             // Stun
             stunned = Mathf.Clamp(stunned - Time.deltaTime, 0, 3600);

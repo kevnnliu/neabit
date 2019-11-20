@@ -6,13 +6,6 @@ using Photon.Pun;
 namespace com.tuth.neabit {
     public class Laser : MonoBehaviourPun {
 
-        #region Public Fields
-
-        public GameObject owner;
-        public float damage = 15f;
-
-        #endregion
-
         #region Private Fields
 
         [SerializeField]
@@ -20,6 +13,11 @@ namespace com.tuth.neabit {
 
         [SerializeField]
         float lifeSpan;
+
+        [SerializeField]
+        float damage = 15f;
+
+        GameObject owner;
 
         #endregion
 
@@ -42,6 +40,7 @@ namespace com.tuth.neabit {
             if (Physics.Raycast(transform.position, transform.forward, out hit, 1f)) {
                 if (hit.transform.root.CompareTag("Player")) {
                     PlayerManager player = hit.transform.GetComponent<PlayerManager>();
+                    owner.GetComponent<PlayerManager>().hitmarkerSound.Play();
                     if (owner != hit.transform.gameObject) {
                         player.takeDamage(damage, owner);
                     }
@@ -53,5 +52,17 @@ namespace com.tuth.neabit {
         }
 
 	    #endregion
+
+        #region Public Methods
+
+        public void setOwner(GameObject player) {
+            owner = player;
+        }
+
+        public GameObject getOwner() {
+            return owner;
+        }
+
+        #endregion
     }
 }

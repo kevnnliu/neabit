@@ -14,11 +14,13 @@ namespace com.tuth.neabit {
                 stream.SendNext(isFiring);
                 stream.SendNext(health);
                 stream.SendNext(isShielding);
+                stream.SendNext(isBoosting);
             }
             else {
                 this.isFiring = (bool)stream.ReceiveNext();
                 this.health = (float)stream.ReceiveNext();
                 this.isShielding = (bool)stream.ReceiveNext();
+                this.isBoosting = (bool)stream.ReceiveNext();
             }
         }
 
@@ -61,7 +63,7 @@ namespace com.tuth.neabit {
         GameManager gameManager;
         int actorNum;
         float laserTimeout = 0;
-        float energy = 1;
+        float energy;
         float health = 100f;
         float regenTimer = 0;
         bool isFiring = false;
@@ -95,6 +97,8 @@ namespace com.tuth.neabit {
         public GameInfoDisplay gameInfoDisplay;
         public GameObject gameDisplayContainer;
         public GameObject scoreDisplayContainer;
+        public AudioSource boostSound;
+        public AudioSource hitmarkerSound;
 
         #endregion
 
@@ -116,6 +120,8 @@ namespace com.tuth.neabit {
 
             gameManager = GameObject.FindGameObjectWithTag("GameController").GetComponent<GameManager>();
             playerID = PhotonNetwork.LocalPlayer.UserId;
+
+            energy = TOTAL_ENERGY;
             
             initializeScore();
         }
@@ -131,15 +137,23 @@ namespace com.tuth.neabit {
                 energy += ENERGY_CHARGE_RATE * Time.deltaTime;
             }
             energy = Mathf.Clamp(energy, 0, TOTAL_ENERGY);
+            // energy = TOTAL_ENERGY;
 
             energyMeter.value = energy / TOTAL_ENERGY;
 
             if (energy == 0)
             {
-                playerController.stunned = 1f;
+                // playerController.stunned = 1f;
             }
 
             updateDisplay();
+
+            if (isBoosting && !boostSound.isPlaying) {
+                boostSound.Play();
+            }
+            else if (!isBoosting && boostSound.isPlaying) {
+                boostSound.Stop();
+            }
 
             if (laserTimeout > 0) {
                 laserTimeout -= Time.deltaTime;
@@ -153,7 +167,7 @@ namespace com.tuth.neabit {
 
                     GameObject laser = PhotonNetwork.Instantiate(laserPrefab.name, shootFrom.position, laserAngle, 0);
                     Laser laserComp = laser.GetComponent<Laser>();
-                    laserComp.owner = this.gameObject;
+                    laserComp.setOwner(this.gameObject);
                     energy -= LASER_ENERGY_COST;
                 }
                 regenTimer = REGEN_DELAY;
@@ -254,7 +268,7 @@ namespace com.tuth.neabit {
             gameDisplay[3].enabled = isFiring;
 
             gameDisplay[4].enabled = !isBoosting;
-            gameDisplay[4].enabled = isBoosting;
+            gameDisplay[5].enabled = isBoosting;
 
             Dictionary<string, Dictionary<string, string>> scoreboard = gameManager.getScoreboard();
             
