@@ -169,7 +169,7 @@ namespace com.tuth.neabit {
                 // Boosting takes priority over all else
                 playerManager.boost(inputs.boosting);
                 // networked firing
-                if (!inputs.boosting && inputs.firing) {
+                if (inputs.firing) {
                     Vector3 angularVelocity = new Vector3(pitchCoeff, -yawCoeff, 0f);
                     playerManager.fire(angularVelocity);
                     playerManager.shield(false);
