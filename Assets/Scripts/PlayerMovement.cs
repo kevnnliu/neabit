@@ -44,7 +44,7 @@ namespace com.tuth.neabit
         public override Vector3 Force()
         {
             float ratio = player.rb.velocity.magnitude / (player.inputs.boosting ? PlayerStats.BOOST_SPEED : PlayerStats.MAX_SPEED);
-            float dragFactor = Mathf.Max(0, (ratio - PlayerStats.DRAG_THRESH) / (1 - PlayerStats.DRAG_THRESH));
+            float dragFactor = Mathf.Clamp((ratio - PlayerStats.DRAG_THRESH) / (1 - PlayerStats.DRAG_THRESH), 0, 1.2f);
             float accel = player.inputs.boosting ? PlayerStats.BOOST_ACCEL : PlayerStats.BASE_ACCEL;
             float drag = PlayerStats.BASE_DRAG + accel * dragFactor;
             return -drag * player.rb.velocity.normalized;
