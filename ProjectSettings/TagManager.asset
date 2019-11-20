@@ -10,6 +10,7 @@ TagManager:
   - Checkpoint
   - Menu
   - Boost
+  - Transition
   layers:
   - Default
   - TransparentFX

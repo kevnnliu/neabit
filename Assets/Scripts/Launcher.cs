@@ -22,6 +22,7 @@ namespace com.tuth.neabit {
 
         #region Private Fields
 
+        [SerializeField]
         string gameVersion = "0.0.1";
         bool isConnecting;
 
@@ -49,15 +50,17 @@ namespace com.tuth.neabit {
         #region Public Methods
 
         public void Connect() {
-            isConnecting = true;
-            progressLabel.SetActive(true);
-            controlPanel.SetActive(false);
+            if (!string.IsNullOrEmpty(PhotonNetwork.NickName)) {
+                isConnecting = true;
+                progressLabel.SetActive(true);
+                controlPanel.SetActive(false);
 
-            if (PhotonNetwork.IsConnected) {
-                PhotonNetwork.JoinRandomRoom();
-            } else {
-                PhotonNetwork.GameVersion = gameVersion;
-                PhotonNetwork.ConnectUsingSettings();
+                if (PhotonNetwork.IsConnected) {
+                    PhotonNetwork.JoinRandomRoom();
+                } else {
+                    PhotonNetwork.GameVersion = gameVersion;
+                    PhotonNetwork.ConnectUsingSettings();
+                }
             }
         }
 
@@ -82,7 +85,7 @@ namespace com.tuth.neabit {
         public override void OnJoinedRoom() {
             Debug.Log("OnJoinedRoom() called by PUN");
 
-            PhotonNetwork.LoadLevel("NetworkScene");
+            PhotonNetwork.LoadLevel("Station");
         }
 
         public override void OnDisconnected(DisconnectCause cause) {

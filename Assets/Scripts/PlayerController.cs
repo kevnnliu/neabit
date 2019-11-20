@@ -111,8 +111,6 @@ namespace com.tuth.neabit {
                 Debug.Log("Assisted controls: " + ASSISTED_CONTROL);
             }
 
-            Debug.Log(rb.velocity.magnitude);
-
             // Stun
             stunned = Mathf.Clamp(stunned - Time.deltaTime, 0, 3600);
 

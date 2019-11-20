@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using Photon.Pun;
-using Photon.Realtime;
 
 namespace com.tuth.neabit {
     [RequireComponent(typeof(InputField))]
@@ -30,6 +29,7 @@ namespace com.tuth.neabit {
             }
 
             PhotonNetwork.NickName = defaultName;
+
         }
 
         // Update is called once per frame
@@ -50,6 +50,7 @@ namespace com.tuth.neabit {
             PhotonNetwork.NickName = value;
 
             PlayerPrefs.SetString(playerNamePrefKey, value);
+
         }
 
         #endregion
