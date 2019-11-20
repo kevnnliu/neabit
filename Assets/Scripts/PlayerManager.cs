@@ -253,6 +253,9 @@ namespace com.tuth.neabit {
             gameDisplay[2].enabled = !isFiring;
             gameDisplay[3].enabled = isFiring;
 
+            gameDisplay[4].enabled = !isBoosting;
+            gameDisplay[4].enabled = isBoosting;
+
             Dictionary<string, Dictionary<string, string>> scoreboard = gameManager.getScoreboard();
             
             scoreDisplay[0].text = "Player Name:";
