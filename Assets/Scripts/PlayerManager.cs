@@ -27,7 +27,6 @@ namespace com.tuth.neabit {
         #region Static Fields
 
         static bool ROTATIONAL_AIM_COMPENSATION = true;
-        static float LASER_COMPENSATION_COEFF = 3f;
 
         static Dictionary<string, int> fieldIndex = new Dictionary<string, int>()
         {
@@ -81,6 +80,7 @@ namespace com.tuth.neabit {
         const float LASER_FIRERATE = 0.12f;
         const float FULL_HEALTH = 100f;
         const float ENERGY_CHARGE_RATE = 4f;
+        const float LASER_COMPENSATION_COEFF = 0.12f;
 
         #endregion
 

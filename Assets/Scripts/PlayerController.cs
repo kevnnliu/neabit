@@ -54,9 +54,12 @@ namespace com.tuth.neabit {
         GameObject rightTrack;
         RigWrapper playerRig;
         GameObject playerCamera;
+        float yawCoeff;
+        float rollCoeff;
+        float pitchCoeff;
 
         Queue<PlayerMovement> forces;
-        Vector3 lastRotation;
+
 
         #endregion
 
@@ -113,13 +116,12 @@ namespace com.tuth.neabit {
             boosting = false;
             stunned = 0;
             rb.maxAngularVelocity = 0;
-
-            lastRotation = transform.rotation.eulerAngles;
         }
 
         // Update is called once per frame
         void Update() {
-            // control scheme switch
+
+            // control scheme switches
             if (Input.GetKeyDown(KeyCode.Q)) {
                 KEYBOARD_CONTROL = !KEYBOARD_CONTROL;
                 Debug.Log("Keyboard controls: " + KEYBOARD_CONTROL);
@@ -129,28 +131,12 @@ namespace com.tuth.neabit {
                 Debug.Log("Assisted controls: " + ASSISTED_CONTROL);
             }
 
-            if (CONTROLS_ENABLED) {
-                // networked firing
-                if (Input.GetKey(KeyCode.M) || getRightIndexTrigger()) {
-                    Vector3 angularVelocity = (transform.rotation.eulerAngles - lastRotation) / Time.deltaTime;
-                    playerManager.fire(angularVelocity);
-                    playerManager.shield(false);
-                } // firing/shielding are exclusive actions, but firing takes priority
-                else {
-                    playerManager.shield((Input.GetKey(KeyCode.N) || getLeftIndexTrigger()));
-                }
-            }
-
-            lastRotation = transform.rotation.eulerAngles;
-
-            Debug.Log(rb.angularVelocity);
-
             // Stun
             stunned = Mathf.Clamp(stunned - Time.deltaTime, 0, 3600);
 
             boosting = false;
 
-            // Non-networked movement?
+            // movement calculations
             inputs = GetMovementInputs();
 
             if (CONTROLS_ENABLED) {
@@ -169,19 +155,29 @@ namespace com.tuth.neabit {
             }
                 
             // free rotation (unclamped)
-            if (true)
-            {
-                float rollCoeff = -inputs.roll * maxRoll * turnSensitivity;
-                float yawCoeff = inputs.yaw * maxYaw * turnSensitivity;
-                float pitchCoeff = -inputs.pitch * maxPitch * turnSensitivity;
+            if (true) {
+                rollCoeff = -inputs.roll * maxRoll * turnSensitivity;
+                yawCoeff = inputs.yaw * maxYaw * turnSensitivity;
+                pitchCoeff = -inputs.pitch * maxPitch * turnSensitivity;
                 transform.RotateAround(transform.position, transform.up, rollCoeff * Time.deltaTime);
                 transform.RotateAround(transform.position, transform.forward, yawCoeff * Time.deltaTime);
                 transform.RotateAround(transform.position, transform.right, pitchCoeff * Time.deltaTime);
                 playerRig.anchorYaw = transform.rotation * Quaternion.Euler(-90f, -180f, 0f);
             }
-            else
-            {
+            else {
                 // Stunned turning
+            }
+
+            if (CONTROLS_ENABLED) {
+                // networked firing
+                if (Input.GetKey(KeyCode.M) || getRightIndexTrigger()) {
+                    Vector3 angularVelocity = new Vector3(pitchCoeff, -yawCoeff, 0f);
+                    playerManager.fire(angularVelocity);
+                    playerManager.shield(false);
+                } // firing/shielding are exclusive actions, but firing takes priority
+                else {
+                    playerManager.shield((Input.GetKey(KeyCode.N) || getLeftIndexTrigger()));
+                }
             }
         
         }
