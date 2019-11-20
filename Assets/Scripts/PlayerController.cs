@@ -151,12 +151,12 @@ namespace com.tuth.neabit {
             if (CONTROLS_ENABLED && stunned == 0) {
                 // Boosting takes priority over all else
                 playerManager.boost(inputs.boosting);
-                // networked firing
-                if (inputs.firing) {
+                // firing is an exclusive action
+                if (!inputs.boosting && inputs.firing) {
                     Vector3 angularVelocity = new Vector3(pitchCoeff, -yawCoeff, 0f);
                     playerManager.fire(angularVelocity);
-                    playerManager.shield(false);
-                } // firing/shielding are exclusive actions, but firing takes priority
+                    playerManager.shield(false); // shielding is an exclusive action but firing takes priority
+                } 
                 else {
                     playerManager.shield(inputs.shielding);
                 }
