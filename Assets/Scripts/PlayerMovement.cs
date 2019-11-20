@@ -25,27 +25,29 @@ namespace com.tuth.neabit
         ACTIVE = 1, INACTIVE = 0, REMOVE = -1
     }
 
+    public class PlayerStats
+    {
+        public static float MAX_SPEED = 20;
+        public static float BASE_ACCEL = 30;
+        public static float BOOST_SPEED = 50;
+        public static float BOOST_ACCEL = 100;
+        public static float BASE_DRAG = 20;
+        public static float DRAG_THRESH = 0.8f;
+        public static float LATERAL_DRAG = 5;
+        public static float BOOST_LATERAL_DRAG = 20;
+    }
+
     public class DragForce : PlayerMovement
     {
         public DragForce(PlayerController player) : base(player) { }
 
         public override Vector3 Force()
         {
-            const float BASE_DRAG = 18;
-            const float DRAG_THRESHOLD = 18;
-            const float DRAG_FACTOR = (22 - BASE_DRAG) / (22 - DRAG_THRESHOLD);
-
-            float speed = player.rb.velocity.magnitude;
-            if (speed < BASE_DRAG * Time.deltaTime)
-            {
-                player.rb.velocity = Vector3.zero;
-                return Vector3.zero;
-            }
-            else
-            {
-                float drag = BASE_DRAG + DRAG_FACTOR * Mathf.Max(0, speed - DRAG_THRESHOLD);
-                return -drag * player.rb.velocity.normalized;
-            }
+            float ratio = player.rb.velocity.magnitude / (player.inputs.boosting ? PlayerStats.BOOST_SPEED : PlayerStats.MAX_SPEED);
+            float dragFactor = Mathf.Max(0, (ratio - PlayerStats.DRAG_THRESH) / (1 - PlayerStats.DRAG_THRESH));
+            float accel = player.inputs.boosting ? PlayerStats.BOOST_ACCEL : PlayerStats.BASE_ACCEL;
+            float drag = PlayerStats.BASE_DRAG + accel * dragFactor;
+            return -drag * player.rb.velocity.normalized;
         }
     }
 
@@ -60,47 +62,24 @@ namespace com.tuth.neabit
 
         public override Vector3 Force()
         {
-            const float THRUST_FORCE = 22;
-            const float LATERAL_DRAG = 2f;
-
             Vector3 lateral = Vector3.ProjectOnPlane(player.rb.velocity, player.transform.up);
-            return THRUST_FORCE * player.transform.up - LATERAL_DRAG * lateral;
+            return (PlayerStats.BASE_ACCEL + PlayerStats.BASE_DRAG) * player.transform.up - PlayerStats.LATERAL_DRAG * lateral;
         }
     }
 
     public class BoostForce : PlayerMovement
     {
-        float boostTime;
-        Vector3 direction;
-
-        public BoostForce(PlayerController player, Vector3 direction) : base(player)
-        {
-            boostTime = 0;
-            this.direction = direction.normalized;
-        }
+        public BoostForce(PlayerController player) : base(player) { }
 
         public override Status GetStatus()
         {
-            const float BOOST_DURATION = 1f;
-            return (boostTime < BOOST_DURATION) ? Status.ACTIVE : Status.REMOVE;
+            return (player.stunned == 0 && player.inputs.boosting) ? Status.ACTIVE : Status.INACTIVE;
         }
 
         public override Vector3 Force()
         {
-            const float BOOST_DURATION = 0.08f;
-            const float BOOST_SPEED = 1.975f * 95f;
-            const float LATERAL_DRAG = 0.5f;
-
-            player.boosting = true;
-
-            if (boostTime <= BOOST_DURATION)
-            {
-                float drag = (boostTime == 0) ? LATERAL_DRAG : 1;
-                Vector3 lateral = Vector3.ProjectOnPlane(player.rb.velocity, this.direction);
-                player.rb.velocity = BOOST_SPEED * this.direction + drag * lateral;
-            }
-            boostTime += Time.deltaTime;
-            return Vector3.zero;
+            Vector3 lateral = Vector3.ProjectOnPlane(player.rb.velocity, player.transform.up);
+            return (PlayerStats.BOOST_ACCEL + PlayerStats.BASE_DRAG) * player.transform.up - PlayerStats.BOOST_LATERAL_DRAG * lateral;
         }
     }
 }

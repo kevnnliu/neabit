@@ -57,14 +57,16 @@ namespace com.tuth.neabit {
         [SerializeField]
         Text[] scoreDisplay;
 
-        bool isFiring;
         PlayerController playerController;
         GameManager gameManager;
         int actorNum;
         float laserTimeout = 0;
-        float energy = 100f;
+        float energy = 1;
         float health = 100f;
+        float regenTimer = 0;
+        bool isFiring = false;
         bool isShielding = false;
+        bool isBoosting = false;
         GameObject playerCamera;
         Dictionary<string, string> playerScore = new Dictionary<string, string>();
         string playerID;
@@ -74,12 +76,14 @@ namespace com.tuth.neabit {
 
         #region Constants
 
-        const float TOTAL_ENERGY = 100f;
-        const float LASER_ENERGY_COST = 0.75f;
-        const float SHIELD_ENERGY_COST = 25f;
-        const float LASER_FIRERATE = 0.12f;
+        const float TOTAL_ENERGY = 1;
+        const float LASER_ENERGY_COST = 0.01f;
+        const float SHIELD_ENERGY_COST = 0.25f;
+        const float BOOST_ENERGY_COST = 0.2f;
+        const float LASER_FIRERATE = 0.16f;
+        const float ENERGY_CHARGE_RATE = 0.2f;
+        const float REGEN_DELAY = 0.2f;
         const float FULL_HEALTH = 100f;
-        const float ENERGY_CHARGE_RATE = 4f;
         const float LASER_COMPENSATION_COEFF = 0.12f;
 
         #endregion
@@ -120,18 +124,25 @@ namespace com.tuth.neabit {
         void Update() {
             playerController.enabled = photonView.IsMine;
 
-            energy += ENERGY_CHARGE_RATE * Time.deltaTime;
+            regenTimer = Mathf.Max(regenTimer - Time.deltaTime, 0);
+
+            if (regenTimer == 0)
+            {
+                energy += ENERGY_CHARGE_RATE * Time.deltaTime;
+            }
+            energy = Mathf.Clamp(energy, 0, TOTAL_ENERGY);
 
             energyMeter.value = energy / TOTAL_ENERGY;
+
+            if (energy == 0)
+            {
+                playerController.stunned = 1f;
+            }
 
             updateDisplay();
 
             if (laserTimeout > 0) {
                 laserTimeout -= Time.deltaTime;
-            }
-
-            if (energy >= TOTAL_ENERGY) {
-                energy = TOTAL_ENERGY;
             }
 
             if (isFiring && laserTimeout <= 0) {
@@ -145,6 +156,7 @@ namespace com.tuth.neabit {
                     laserComp.owner = this.gameObject;
                     energy -= LASER_ENERGY_COST;
                 }
+                regenTimer = REGEN_DELAY;
                 isFiring = false;
             }
 
@@ -173,6 +185,20 @@ namespace com.tuth.neabit {
             }
             else {
                 shieldDown();
+            }
+        }
+
+        public void boost(bool amBoosting)
+        {
+            if (energy > 0 && amBoosting)
+            {
+                energy -= BOOST_ENERGY_COST * Time.deltaTime;
+                regenTimer = REGEN_DELAY;
+                isBoosting = true;
+            }
+            else
+            {
+                isBoosting = false;
             }
         }
 
@@ -253,6 +279,7 @@ namespace com.tuth.neabit {
         }
 
         void shieldUp() {
+            regenTimer = REGEN_DELAY;
             if (!isShielding) {
                 shieldObject.SetActive(true);
                 isShielding = true;

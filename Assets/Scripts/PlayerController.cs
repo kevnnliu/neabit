@@ -77,7 +77,6 @@ namespace com.tuth.neabit {
         internal Inputs inputs;
 
         internal float stunned;
-        internal bool boosting;
 
         #endregion
 
@@ -112,8 +111,8 @@ namespace com.tuth.neabit {
             forces = new Queue<PlayerMovement>();
             forces.Enqueue(new DragForce(this));
             forces.Enqueue(new ThrustForce(this));
-
-            boosting = false;
+            forces.Enqueue(new BoostForce(this));
+            
             stunned = 0;
             rb.maxAngularVelocity = 0;
         }
@@ -133,8 +132,6 @@ namespace com.tuth.neabit {
 
             // Stun
             stunned = Mathf.Clamp(stunned - Time.deltaTime, 0, 3600);
-
-            boosting = false;
 
             // movement calculations
             inputs = GetMovementInputs();
@@ -167,38 +164,44 @@ namespace com.tuth.neabit {
             else {
                 // Stunned turning
             }
-
-            if (CONTROLS_ENABLED) {
+            
+            if (CONTROLS_ENABLED && stunned == 0) {
+                // Boosting takes priority over all else
+                playerManager.boost(inputs.boosting);
                 // networked firing
-                if (Input.GetKey(KeyCode.M) || getRightIndexTrigger()) {
+                if (!inputs.boosting && inputs.firing) {
                     Vector3 angularVelocity = new Vector3(pitchCoeff, -yawCoeff, 0f);
                     playerManager.fire(angularVelocity);
                     playerManager.shield(false);
                 } // firing/shielding are exclusive actions, but firing takes priority
                 else {
-                    playerManager.shield((Input.GetKey(KeyCode.N) || getLeftIndexTrigger()));
+                    playerManager.shield(inputs.shielding);
                 }
+            }
+            else
+            {
+                playerManager.boost(false);
             }
         
         }
 
         private void OnTriggerEnter(Collider other)
         {
-            GameObject obj = other.gameObject;
-            if (obj.CompareTag("Boost"))
-            {
-                if (!boosting && Vector3.Dot(rb.velocity, -obj.transform.forward) < 0)
-                {
-                    Debug.Log("BOOOOOOST!");
-                    boosting = true;
-                    forces.Enqueue(new BoostForce(this, obj.transform.forward));
-                }
-            }
+            //GameObject obj = other.gameObject;
+            //if (obj.CompareTag("Boost"))
+            //{
+            //    if (!boosting && Vector3.Dot(rb.velocity, -obj.transform.forward) < 0)
+            //    {
+            //        Debug.Log("BOOOOOOST!");
+            //        boosting = true;
+            //        forces.Enqueue(new BoostForce(this, obj.transform.forward));
+            //    }
+            //}
         }
 
         private void OnCollisionEnter(Collision collision)
         {
-            stunned = 0.5f;
+            stunned = 0.4f;
             
             // Vector3 normal = collision.GetContact(0).normal;
             // Vector3 ortho = Vector3.Project(transform.up, normal);
@@ -219,36 +222,6 @@ namespace com.tuth.neabit {
 
         #region Private Methods
 
-        Vector3 GetPhysicsMovement()
-        {
-            Vector3 forward = Vector3.Project(rb.velocity, transform.up);
-            Vector3 normal = rb.velocity - forward;
-
-            float forwardDrag = inputs.thrust ? dragCoeff / dragFactor : dragCoeff;
-            float normalDrag = inputs.thrust ? dragCoeff * dragFactor : dragCoeff;
-
-            float fmag = Mathf.Clamp(forward.magnitude - forwardDrag * Time.deltaTime, 0, Mathf.Infinity);
-            float nmag = Mathf.Clamp(normal.magnitude - normalDrag * Time.deltaTime, 0, Mathf.Infinity);
-
-            forward = forward.normalized * fmag;
-            normal = normal.normalized * nmag;
-
-            return forward + normal;
-        }
-
-        Vector3 GetDesiredMovement()
-        {
-            Vector3 forward = Vector3.Project(rb.velocity, transform.up);
-
-            if (inputs.thrust)
-            {
-                float fmag = Mathf.Clamp(forward.magnitude + thrustRate * Time.deltaTime, 0, maxThrust);
-                forward = transform.up * fmag;
-            }
-
-            return forward;
-        }
-
         Inputs GetMovementInputs() {
             Vector3 leftTouchP = leftTrack.transform.localPosition;
             Vector3 rightTouchP = rightTrack.transform.localPosition;
@@ -257,17 +230,21 @@ namespace com.tuth.neabit {
             Vector3 averageHandP = 0.5f * (leftTouchP + rightTouchP);
             Vector3 shoulderOffset = new Vector3(0f, 0.4f, 0f);
 
-            float iB = KEYBOARD_CONTROL ? Input.GetAxis("Horizontal") * 90f : calculateTheta(leftTouchP, rightTouchP, false);
+            float iR = KEYBOARD_CONTROL ? Input.GetAxis("Horizontal") * 90f : calculateTheta(leftTouchP, rightTouchP, false);
             float iP = KEYBOARD_CONTROL ? Input.GetAxis("Vertical") * 90f : -calculateTheta(averageHandP, headP - shoulderOffset, false);
             float iY = KEYBOARD_CONTROL ? Input.GetAxis("HorizontalAlt") * 90f : calculateTheta(averageHandP, headP - shoulderOffset, true);
 
             bool iT = KEYBOARD_CONTROL ? Input.GetKey(KeyCode.Space) : getLeftHandTrigger();
+            bool iB = KEYBOARD_CONTROL ? Input.GetKey(KeyCode.LeftShift) && iT : getRightHandTrigger() && iT;
 
-            if (float.IsNaN(iB) || float.IsNaN(iP) || float.IsNaN(iY)) {
-                return new Inputs(0, 0, 0, false);
+            bool iF = KEYBOARD_CONTROL ? Input.GetKey(KeyCode.M) : getRightIndexTrigger();
+            bool iS = KEYBOARD_CONTROL ? Input.GetKey(KeyCode.N) : getLeftIndexTrigger();
+
+            if (float.IsNaN(iR) || float.IsNaN(iP) || float.IsNaN(iY)) {
+                return new Inputs(0, 0, 0, false, false, false, false);
             }
 
-            return new Inputs(iB, iP, iY, iT);
+            return new Inputs(iR, iP, iY, iT, iB, iF, iS);
         }
 
         // input processing, apply polynomial for control smoothing
@@ -318,14 +295,22 @@ namespace com.tuth.neabit {
             public float roll;
             public float pitch;
             public float yaw;
-            public bool thrust;
 
-            public Inputs(float iR, float iP, float iY, bool iT)
+            public bool thrust;
+            public bool boosting;
+
+            public bool firing;
+            public bool shielding;
+
+            public Inputs(float iR, float iP, float iY, bool iT, bool iB, bool iF, bool iS)
             {
                 roll = iR;
                 pitch = iP;
                 yaw = iY;
                 thrust = iT;
+                boosting = iB;
+                firing = iF;
+                shielding = iS;
             }
         }
 
