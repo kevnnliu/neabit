@@ -8,11 +8,7 @@ namespace com.tuth.neabit {
     [RequireComponent(typeof(InputField))]
     public class PlayerNameInputField : MonoBehaviour {
 
-        #region Private Constants
-
         const string playerNamePrefKey = "PlayerName";
-
-        #endregion
 
         #region MonoBehaviour CallBacks
 
@@ -21,9 +17,14 @@ namespace com.tuth.neabit {
 
             string defaultName = string.Empty;
             InputField _inputField = this.GetComponent<InputField>();
+
             if (_inputField != null) {
                 if (PlayerPrefs.HasKey(playerNamePrefKey)) {
                     defaultName = PlayerPrefs.GetString(playerNamePrefKey);
+                    _inputField.text = defaultName;
+                }
+                else {
+                    defaultName = RandomString(8);
                     _inputField.text = defaultName;
                 }
             }
@@ -47,10 +48,24 @@ namespace com.tuth.neabit {
                 Debug.Log("Player name is null or empty");
                 return;
             }
+
             PhotonNetwork.NickName = value;
 
             PlayerPrefs.SetString(playerNamePrefKey, value);
 
+        }
+
+        #endregion
+
+        #region Private Methods
+
+        private static string RandomString(int length) {
+            const string chars = "qwertyuioplkjhgfdsazxcvbnm0123456789";
+            string randomString = "";
+            for (int i = 0; i < length; i++) {
+                randomString += chars[Random.Range(0, chars.Length)];
+            }
+            return randomString;
         }
 
         #endregion

@@ -7,16 +7,16 @@ using Photon.Realtime;
 namespace com.tuth.neabit {
     public class Launcher : MonoBehaviourPunCallbacks {
 
-        #region Private Serializable Fields
+        #region Serializable Fields
 
         [SerializeField]
-        private byte roomMaxPlayers;
+        byte roomMaxPlayers;
 
         [SerializeField]
-        private GameObject controlPanel;
+        GameObject controlPanel;
 
         [SerializeField]
-        private GameObject progressLabel;
+        GameObject progressLabel;
 
         #endregion
 

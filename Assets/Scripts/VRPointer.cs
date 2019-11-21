@@ -38,13 +38,6 @@ namespace com.tuth.neabit {
                         button.onClick.Invoke();
                     }
                 }
-                else if (hit.transform.gameObject.CompareTag("Transition")) {
-                    Transition transition = hit.transform.GetComponent<Transition>();
-                    if (OVRInput.Get(OVRInput.Axis1D.SecondaryIndexTrigger) > 0.3f) {
-                        Debug.Log("Selected transition: " + transition.label);
-                        transition.goToScene();
-                    }
-                }
             }
         }
 

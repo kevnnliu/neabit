@@ -11,7 +11,4 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Maps/Station.unity
     guid: 805806b5f1c589f41bb998548ed26ae3
-  - enabled: 1
-    path: Assets/Scenes/NameInput.unity
-    guid: 24446febe4434af43aae003babf0f03b
   m_configObjects: {}

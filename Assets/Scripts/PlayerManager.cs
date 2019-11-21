@@ -261,13 +261,13 @@ namespace com.tuth.neabit {
         #region Private Methods
 
         void updateDisplay() {
-            gameDisplay[0].enabled = !isShielding;
+            gameDisplay[0].enabled = !isShielding && !isFiring;
             gameDisplay[1].enabled = isShielding;
 
-            gameDisplay[2].enabled = !isFiring;
+            gameDisplay[2].enabled = !isFiring && !isShielding && !isBoosting;
             gameDisplay[3].enabled = isFiring;
 
-            gameDisplay[4].enabled = !isBoosting;
+            gameDisplay[4].enabled = !isBoosting && !isFiring;
             gameDisplay[5].enabled = isBoosting;
 
             Dictionary<string, Dictionary<string, string>> scoreboard = gameManager.getScoreboard();
