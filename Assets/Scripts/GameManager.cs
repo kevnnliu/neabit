@@ -85,7 +85,9 @@ namespace com.tuth.neabit {
                 PlayerManager playerManager = playerObject.GetComponent<PlayerManager>();
                 Dictionary<string, string> playerScore = playerManager.getPlayerScore();
                 string playerID = playerManager.getPlayerID();
-                scoreboard[playerID] = playerScore;
+                if (!string.IsNullOrEmpty(playerID)) {
+                    scoreboard[playerID] = playerScore;
+                }
             }
 
         }
