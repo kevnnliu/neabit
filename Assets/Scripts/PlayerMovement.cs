@@ -27,14 +27,15 @@ namespace com.tuth.neabit
 
     public class PlayerStats
     {
-        public static float MAX_SPEED = 12;
-        public static float BASE_ACCEL = 30;
-        public static float BOOST_SPEED = 16;
-        public static float BOOST_ACCEL = 50;
-        public static float BASE_DRAG = 20;
+        public static float MULTIPLIER = 0.25f;
+        public static float MAX_SPEED = 20 * MULTIPLIER;
+        public static float BASE_ACCEL = 25 * MULTIPLIER;
+        public static float BOOST_SPEED = 35 * MULTIPLIER;
+        public static float BOOST_ACCEL = 80 * MULTIPLIER;
+        public static float BASE_DRAG = 10 * MULTIPLIER;
         public static float DRAG_THRESH = 0.8f;
-        public static float LATERAL_DRAG = 4;
-        public static float BOOST_LATERAL_DRAG = 16;
+        public static float LATERAL_DRAG = 5 * MULTIPLIER;
+        public static float BOOST_LATERAL_DRAG = 20 * MULTIPLIER;
     }
 
     public class DragForce : PlayerMovement
@@ -47,6 +48,10 @@ namespace com.tuth.neabit
             float dragFactor = Mathf.Clamp((ratio - PlayerStats.DRAG_THRESH) / (1 - PlayerStats.DRAG_THRESH), 0, 2f);
             float accel = player.inputs.boosting ? PlayerStats.BOOST_ACCEL : PlayerStats.BASE_ACCEL;
             float drag = PlayerStats.BASE_DRAG + accel * dragFactor;
+            if (player.rb.velocity.magnitude < drag * Time.deltaTime) {
+                player.rb.velocity = Vector3.zero;
+                return Vector3.zero;
+            }
             return -drag * player.rb.velocity.normalized;
         }
     }

@@ -17,7 +17,6 @@ namespace com.tuth.neabit {
         public Transform[] playerStarts;
         public bool isGame = false;
         public float startCountdown;
-        public ArrayList completedRaceIDs;
 
         #endregion
 
@@ -33,7 +32,6 @@ namespace com.tuth.neabit {
         int launcherBuildIndex;
 
         Room currentRoom;
-
         #endregion
 
         #region MonoBehaviour CallBacks
@@ -60,8 +58,6 @@ namespace com.tuth.neabit {
 
             Debug.Log("Current: " + currentRoom.Players.Count + ", Max: " + currentRoom.MaxPlayers);
 
-            completedRaceIDs = new ArrayList();
-
             if (currentRoom.PlayerCount == currentRoom.MaxPlayers) {
                 isGame = true;
                 countdownStartEventCall();
@@ -78,15 +74,6 @@ namespace com.tuth.neabit {
                 if (startCountdown <= 0) {
                     startRaceEventCall();
                     isGame = false;
-                }
-            }
-
-            foreach (GameObject playerObject in GameObject.FindGameObjectsWithTag("Player")) {
-                PlayerManager playerManager = playerObject.GetComponent<PlayerManager>();
-                Dictionary<string, string> playerScore = playerManager.getPlayerScore();
-                string playerID = playerManager.getPlayerID();
-                if (!string.IsNullOrEmpty(playerID)) {
-                    scoreboard[playerID] = playerScore;
                 }
             }
 
@@ -135,21 +122,31 @@ namespace com.tuth.neabit {
             }
         }
 
-        public void respawn(GameObject player, int actorNum) {
-            PhotonNetwork.Instantiate("Explosion", player.transform.position, player.transform.rotation, 0);
-            Vector3 spawnPos = playerStarts[actorNum].position;
-            Quaternion spawnRot = playerStarts[actorNum].rotation;
-            player.transform.position = spawnPos;
-            player.transform.rotation = spawnRot;
-        }
-
         public Dictionary<string, Dictionary<string, string>> getScoreboard() {
             return scoreboard;
+        }
+
+        public void UpdateScoreboardRPCCall(string id, string field, string value) {
+            photonView.RPC("UpdateScoreboard", RpcTarget.AllBufferedViaServer, id, field, value);
+        }
+
+        public void AddPlayerScoreRPCCall(string id, Dictionary<string, string> playerScore) {
+            photonView.RPC("AddPlayerScore", RpcTarget.AllBufferedViaServer, id, playerScore);
         }
 
         #endregion
 
         #region Private Methods
+
+        [PunRPC]
+        void UpdateScoreboard(string id, string field, string value) {
+            scoreboard[id][field] = value;
+        }
+
+        [PunRPC]
+        void AddPlayerScore(string id, Dictionary<string, string> playerScore) {
+            scoreboard[id] = playerScore;
+        }
 
         void spawnPlayer(int actorNum) {
             Vector3 spawnPos = playerStarts[actorNum].position;

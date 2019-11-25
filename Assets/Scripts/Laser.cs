@@ -40,7 +40,10 @@ namespace com.tuth.neabit {
             if (Physics.Raycast(transform.position, transform.forward, out hit, 1f)) {
                 if (hit.transform.root.CompareTag("Player")) {
                     PlayerManager player = hit.transform.GetComponent<PlayerManager>();
-                    owner.GetComponent<PlayerManager>().hitmarkerSound.Play();
+                    PlayerManager attacker = owner.GetComponent<PlayerManager>();
+                    player.addToField("Deaths", 1);
+                    attacker.hitmarkerSound.Play();
+                    attacker.addToField("Kills", 1);
                     if (owner != hit.transform.gameObject) {
                         player.takeDamage(damage, owner);
                     }

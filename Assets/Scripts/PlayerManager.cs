@@ -13,14 +13,14 @@ namespace com.tuth.neabit {
             if (stream.IsWriting) {
                 stream.SendNext(isFiring);
                 stream.SendNext(health);
-                stream.SendNext(isShielding);
                 stream.SendNext(isBoosting);
+                stream.SendNext(playerID);
             }
             else {
                 this.isFiring = (bool)stream.ReceiveNext();
                 this.health = (float)stream.ReceiveNext();
-                this.isShielding = (bool)stream.ReceiveNext();
                 this.isBoosting = (bool)stream.ReceiveNext();
+                this.playerID = (string)stream.ReceiveNext();
             }
         }
 
@@ -54,6 +54,9 @@ namespace com.tuth.neabit {
         Slider energyMeter;
 
         [SerializeField]
+        Slider healthMeter;
+
+        [SerializeField]
         Text[] gameDisplay;
 
         [SerializeField]
@@ -70,7 +73,6 @@ namespace com.tuth.neabit {
         bool isShielding = false;
         bool isBoosting = false;
         GameObject playerCamera;
-        Dictionary<string, string> playerScore = new Dictionary<string, string>();
         string playerID;
         Quaternion laserRotationalCompensation;
 
@@ -115,19 +117,26 @@ namespace com.tuth.neabit {
         // Start is called before the first frame update
         void Start() {
             playerController = GetComponent<PlayerController>();
-            actorNum = PhotonNetwork.LocalPlayer.ActorNumber;
-            Debug.Log("I am player number " + actorNum + " with username " + PhotonNetwork.LocalPlayer.NickName);
-
             gameManager = GameObject.FindGameObjectWithTag("GameController").GetComponent<GameManager>();
-            playerID = PhotonNetwork.LocalPlayer.UserId;
+            actorNum = PhotonNetwork.LocalPlayer.ActorNumber;
+
+            if (photonView.IsMine) {
+                Debug.Log("I am player number " + actorNum + " with username " + PhotonNetwork.LocalPlayer.NickName);
+                playerID = PhotonNetwork.LocalPlayer.UserId;
+                gameManager.AddPlayerScoreRPCCall(playerID, initializeScore());
+            }
 
             energy = TOTAL_ENERGY;
-            
-            initializeScore();
         }
 
         // Update is called once per frame
         void Update() {
+            if (!photonView.IsMine) {
+                if (playerCamera != null) {
+                    playerCamera.SetActive(false);
+                }
+            }
+
             playerController.enabled = photonView.IsMine;
 
             regenTimer = Mathf.Max(regenTimer - Time.deltaTime, 0);
@@ -140,11 +149,7 @@ namespace com.tuth.neabit {
             // energy = TOTAL_ENERGY;
 
             energyMeter.value = energy / TOTAL_ENERGY;
-
-            if (energy == 0)
-            {
-                // playerController.stunned = 1f;
-            }
+            healthMeter.value = health / FULL_HEALTH;
 
             updateDisplay();
 
@@ -174,10 +179,8 @@ namespace com.tuth.neabit {
                 isFiring = false;
             }
 
-            if (!photonView.IsMine && PhotonNetwork.IsConnected) {
-                if (playerCamera != null) {
-                    playerCamera.SetActive(false);
-                }
+            if (photonView.IsMine) {
+                playerID = PhotonNetwork.LocalPlayer.UserId;
             }
         }
 
@@ -195,10 +198,10 @@ namespace com.tuth.neabit {
         public void shield(bool amShielding) {
             if (energy > 0 && amShielding) {
                 energy -= SHIELD_ENERGY_COST * Time.deltaTime;
-                shieldUp();
+                photonView.RPC("ShieldUp", RpcTarget.All);
             }
             else {
-                shieldDown();
+                photonView.RPC("ShieldDown", RpcTarget.All);
             }
         }
 
@@ -218,47 +221,38 @@ namespace com.tuth.neabit {
 
         public void takeDamage(float damage, GameObject attacker) {
             if (!isShielding) {
-                if (health - damage < 0) {
-                    attacker.GetComponent<PlayerManager>().addKill();
-                    addDeath();
-
+                if (health - damage <= 0) {
                     health = FULL_HEALTH;
-                    playerController.rb.velocity = Vector3.zero;
-                    playerController.rb.angularVelocity = Vector3.zero;
-                    gameManager.respawn(this.gameObject, actorNum);
+                    photonView.RPC("Respawn", RpcTarget.All);
                 } else {
                     health -= damage;
                 }
             }  
         }
 
-        public void addKill() {
-            int kills = int.Parse(playerScore["Kills"]);
-            kills += 1;
-            playerScore["Kills"] = kills.ToString();
-        }
-
-        public void addDeath() {
-            int deaths = int.Parse(playerScore["Deaths"]);
-            deaths += 1;
-            playerScore["Deaths"] = deaths.ToString();
-        }
-
-        public string getPlayerID() {
-            return playerID;
-        }
-
-        public Dictionary<string, string> getPlayerScore() {
-            return playerScore;
-        }
-
         public void setCamera(GameObject cam) {
             playerCamera = cam;
+        }
+
+        public void addToField(string fieldName, int amount) {
+            Debug.Log(playerID);
+            Dictionary<string, string> entry = gameManager.getScoreboard()[playerID];
+            int kills = int.Parse(entry[fieldName]) + amount;
+            gameManager.UpdateScoreboardRPCCall(playerID, fieldName, kills.ToString());
         }
 
         #endregion
 
         #region Private Methods
+
+        [PunRPC]
+        void Respawn() {
+            if (photonView.IsMine) {
+                Transform spawn = gameManager.playerStarts[PhotonNetwork.LocalPlayer.ActorNumber];
+                transform.position = spawn.position;
+                transform.rotation = spawn.rotation;
+            }
+        }
 
         void updateDisplay() {
             gameDisplay[0].enabled = !isShielding && !isFiring;
@@ -272,22 +266,26 @@ namespace com.tuth.neabit {
 
             Dictionary<string, Dictionary<string, string>> scoreboard = gameManager.getScoreboard();
             
-            scoreDisplay[0].text = "Player Name:";
-            scoreDisplay[1].text = "Kills:";
+            scoreDisplay[0].text = "Player Name";
+            scoreDisplay[1].text = "Kills";
             scoreDisplay[2].text = "Deaths";
 
             foreach (string playerID in scoreboard.Keys) {
+                Debug.Log(playerID);
                 Dictionary<string, string> playerScore = scoreboard[playerID];
                 foreach (string field in playerScore.Keys) {
+                    Debug.Log(field);
                     scoreDisplay[fieldIndex[field]].text += "\n" + playerScore[field];
                 }
             }
         }
 
-        void initializeScore() {
+        Dictionary<string, string> initializeScore() {
+            Dictionary<string, string> playerScore = new Dictionary<string, string>();
             playerScore["Nickname"] = PhotonNetwork.LocalPlayer.NickName;
             playerScore["Kills"] = "0";
             playerScore["Deaths"] = "0";
+            return playerScore;
         }
 
         void leaveGame() {
@@ -295,7 +293,8 @@ namespace com.tuth.neabit {
             GameObject.Find("Game Manager").GetComponent<GameManager>().LeaveRoom();
         }
 
-        void shieldUp() {
+        [PunRPC]
+        void ShieldUp() {
             regenTimer = REGEN_DELAY;
             if (!isShielding) {
                 shieldObject.SetActive(true);
@@ -303,7 +302,8 @@ namespace com.tuth.neabit {
             }
         }
 
-        void shieldDown() {
+        [PunRPC]
+        void ShieldDown() {
             if (isShielding) {
                 shieldObject.SetActive(false);
                 isShielding = false;

@@ -34,5 +34,10 @@ MonoBehaviour:
   - DestroySpaceship
   - Fire
   - RespawnSpaceship
+  - AddPlayerScore
+  - ShieldDown
+  - ShieldUp
+  - UpdateScoreboard
+  - Respawn
   DisableAutoOpenWizard: 1
   ShowSettings: 1

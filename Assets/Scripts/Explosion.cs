@@ -19,7 +19,7 @@ public class Explosion : MonoBehaviour
     void Update()
     {
         if (!expl.isEmitting) {
-            PhotonNetwork.Destroy(this.gameObject);
+            Destroy(this.gameObject);
         }
     }
 }

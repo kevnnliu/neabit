@@ -47,9 +47,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ac3d5b68dd8fd4b4aa498f395f0fc564, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  boltSpeed: 60
+  boltSpeed: 40
   lifeSpan: 5
-  damage: 15
+  damage: 10
 --- !u!114 &1435102092729052268
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -253,7 +253,7 @@ TrailRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Time: 0.008
+  m_Time: 0.01
   m_Parameters:
     serializedVersion: 3
     widthMultiplier: 0.01

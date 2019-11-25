@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.011322218, g: 0.036536355, b: 0.17829752, a: 1}
+  m_IndirectSpecularColor: {r: 0.00075208285, g: 0.04683289, b: 0.18828249, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -923,7 +923,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 33680c846e219fc40a48ad9668704ec6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  roomMaxPlayers: 1
+  roomMaxPlayers: 2
   controlPanel: {fileID: 1071355244}
   progressLabel: {fileID: 684171359}
   gameVersion: 0.0.1

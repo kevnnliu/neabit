@@ -90,9 +90,9 @@ namespace com.tuth.neabit {
 
             //
             forces = new Queue<PlayerMovement>();
-            forces.Enqueue(new DragForce(this));
             forces.Enqueue(new ThrustForce(this));
             forces.Enqueue(new BoostForce(this));
+            forces.Enqueue(new DragForce(this));
             
             stunned = 0;
             rb.maxAngularVelocity = 0;
@@ -230,7 +230,7 @@ namespace com.tuth.neabit {
 
         // input processing, apply polynomial for control smoothing
         float inputSmoothing(float input) {
-            return Mathf.Sign(input) * Mathf.Pow(Mathf.Abs(input), 2); // returns squared and signed input
+            return Mathf.Sign(input) * Mathf.Pow(Mathf.Abs(input), 3); // returns cubed and signed input
         }
 
         float thrustProcessing(bool isThrusting, float rate) {
