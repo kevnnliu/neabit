@@ -43,19 +43,16 @@ namespace com.tuth.neabit {
             RaycastHit hit;
             if (Physics.Raycast(transform.position, transform.forward, out hit, 1f)) {
                 if (hit.transform.root.CompareTag("Player")) {
-                    Debug.Log("Laser hit");
+                    // Debug.Log("Laser hit");
                     PlayerManager player = hit.transform.GetComponent<PlayerManager>();
                     PlayerManager attacker = owner.GetComponent<PlayerManager>();
-                    player.AddToFieldRPCCall("Deaths", 1);
-                    attacker.hitmarkerSound.Play();
-                    attacker.AddToFieldRPCCall("Kills", 1);
                     if (owner != hit.transform.gameObject) {
-                        player.takeDamage(damage, owner);
+                        // Debug.Log("Damage registered");
+                        attacker.hitmarkerSound.Play();
+                        player.takeDamage(damage, player, attacker);
                     }
-                    PhotonNetwork.Destroy(this.gameObject);
-                } else {
-                    PhotonNetwork.Destroy(this.gameObject);
                 }
+                PhotonNetwork.Destroy(this.gameObject);
             }
         }
 

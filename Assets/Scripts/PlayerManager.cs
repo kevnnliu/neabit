@@ -5,20 +5,7 @@ using UnityEngine.UI;
 using Photon.Pun;
 
 namespace com.tuth.neabit {
-    public class PlayerManager : MonoBehaviourPunCallbacks, IPunObservable {
-
-        #region IPunObservable implementation
-
-        public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info) {
-            if (stream.IsWriting) {
-                stream.SendNext(health);
-            }
-            else {
-                this.health = (float)stream.ReceiveNext();
-            }
-        }
-
-        #endregion
+    public class PlayerManager : MonoBehaviourPunCallbacks {
 
         #region Static Fields
 
@@ -75,12 +62,12 @@ namespace com.tuth.neabit {
         #region Constants
 
         const float TOTAL_ENERGY = 1;
-        const float LASER_ENERGY_COST = 0.01f;
-        const float SHIELD_ENERGY_COST = 0.25f;
-        const float BOOST_ENERGY_COST = 0.2f;
+        const float LASER_ENERGY_COST = 0.02f;
+        const float SHIELD_ENERGY_COST = 0.32f;
+        const float BOOST_ENERGY_COST = 0.26f;
         const float LASER_FIRERATE = 0.16f;
-        const float ENERGY_CHARGE_RATE = 0.2f;
-        const float REGEN_DELAY = 0.2f;
+        const float ENERGY_CHARGE_RATE = 0.14f;
+        const float REGEN_DELAY = 0.4f;
         const float FULL_HEALTH = 100f;
         const float LASER_COMPENSATION_COEFF = 0.12f;
 
@@ -192,10 +179,16 @@ namespace com.tuth.neabit {
         public void shield(bool amShielding) {
             if (energy > 0 && amShielding) {
                 energy -= SHIELD_ENERGY_COST * Time.deltaTime;
-                photonView.RPC("ShieldUp", RpcTarget.All);
+                regenTimer = REGEN_DELAY;
+                if (!isShielding) {
+                    photonView.RPC("ShieldUp", RpcTarget.All);
+                    isShielding = true;
+                }
             }
-            else {
+            else if (isShielding) {
+                regenTimer = REGEN_DELAY;
                 photonView.RPC("ShieldDown", RpcTarget.All);
+                isShielding = false;
             }
         }
 
@@ -213,13 +206,14 @@ namespace com.tuth.neabit {
             }
         }
 
-        public void takeDamage(float damage, GameObject attacker) {
+        public void takeDamage(float damage, PlayerManager player, PlayerManager attacker) {
             if (!isShielding) {
                 if (health - damage <= 0) {
-                    health = FULL_HEALTH;
+                    player.AddToFieldRPCCall("Deaths", 1);
+                    attacker.AddToFieldRPCCall("Kills", 1);
                     photonView.RPC("Respawn", RpcTarget.All);
                 } else {
-                    health -= damage;
+                    photonView.RPC("TakeDamageRPC", RpcTarget.All, damage);
                 }
             }  
         }
@@ -237,15 +231,24 @@ namespace com.tuth.neabit {
         #region Private Methods
 
         [PunRPC]
+        void TakeDamageRPC(float damage) {
+            health -= damage;
+        }
+
+        [PunRPC]
         void AddToField(string fieldName, int amount) {
-            Dictionary<string, string> entry = gameManager.getScoreboard()[playerID];
-            int value = int.Parse(entry[fieldName]) + amount;
-            gameManager.UpdateScoreboardRPCCall(playerID, fieldName, value.ToString());
+            if (photonView.IsMine) {
+                Dictionary<string, string> entry = gameManager.getScoreboard()[playerID];
+                int value = int.Parse(entry[fieldName]) + amount;
+                gameManager.UpdateScoreboardRPCCall(playerID, fieldName, value.ToString());
+            }
         }
 
         [PunRPC]
         void Respawn() {
             if (photonView.IsMine) {
+                health = FULL_HEALTH;
+
                 Transform spawn = gameManager.playerStarts[PhotonNetwork.LocalPlayer.ActorNumber];
                 transform.position = spawn.position;
                 transform.rotation = spawn.rotation;
@@ -292,19 +295,12 @@ namespace com.tuth.neabit {
 
         [PunRPC]
         void ShieldUp() {
-            regenTimer = REGEN_DELAY;
-            if (!isShielding) {
-                shieldObject.SetActive(true);
-                isShielding = true;
-            }
+            shieldObject.SetActive(true);
         }
 
         [PunRPC]
         void ShieldDown() {
-            if (isShielding) {
-                shieldObject.SetActive(false);
-                isShielding = false;
-            }
+            shieldObject.SetActive(false);
         }
 
         #endregion

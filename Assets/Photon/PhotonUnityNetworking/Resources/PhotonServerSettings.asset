@@ -40,5 +40,6 @@ MonoBehaviour:
   - UpdateScoreboard
   - Respawn
   - AddToField
+  - TakeDamageRPC
   DisableAutoOpenWizard: 1
   ShowSettings: 1

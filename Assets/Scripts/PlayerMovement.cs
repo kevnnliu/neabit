@@ -27,15 +27,14 @@ namespace com.tuth.neabit
 
     public class PlayerStats
     {
-        public static float MULTIPLIER = 0.25f;
-        public static float MAX_SPEED = 20 * MULTIPLIER;
-        public static float BASE_ACCEL = 25 * MULTIPLIER;
-        public static float BOOST_SPEED = 35 * MULTIPLIER;
-        public static float BOOST_ACCEL = 80 * MULTIPLIER;
-        public static float BASE_DRAG = 10 * MULTIPLIER;
-        public static float DRAG_THRESH = 0.8f;
-        public static float LATERAL_DRAG = 5 * MULTIPLIER;
-        public static float BOOST_LATERAL_DRAG = 20 * MULTIPLIER;
+        public static float MAX_SPEED = 5;
+        public static float BASE_ACCEL = 6.25f;
+        public static float BOOST_SPEED = 8.75f;
+        public static float BOOST_ACCEL = 20;
+        public static float BASE_DRAG = 4f;
+        public static float DRAG_THRESH = 0.94f;
+        public static float LATERAL_DRAG = 1.5f;
+        public static float BOOST_LATERAL_DRAG = 5f;
     }
 
     public class DragForce : PlayerMovement

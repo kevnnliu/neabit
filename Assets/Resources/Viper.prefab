@@ -452,7 +452,7 @@ GameObject:
   - component: {fileID: 6431173172659863659}
   - component: {fileID: 8013361554796872956}
   - component: {fileID: 8941876801094764701}
-  - component: {fileID: 7967567195747299207}
+  - component: {fileID: 8003233876594802304}
   - component: {fileID: 2594983970144784272}
   - component: {fileID: 3933521342653379235}
   m_Layer: 0
@@ -634,11 +634,11 @@ MonoBehaviour:
   Synchronization: 3
   OwnershipTransfer: 0
   ObservedComponents:
-  - {fileID: 7967567195747299207}
+  - {fileID: 8003233876594802304}
   viewIdField: 0
   InstantiationId: 0
   isRuntimeInstantiated: 0
---- !u!114 &7967567195747299207
+--- !u!114 &8003233876594802304
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -647,12 +647,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 2589789965412945657}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 627855c7f81362d41938ffe0b1475957, type: 3}
+  m_Script: {fileID: 11500000, guid: 64179f3720bbfe947b7724caa67b7c1d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_SynchronizePosition: 1
-  m_SynchronizeRotation: 1
-  m_SynchronizeScale: 0
+  m_SynchronizeVelocity: 1
+  m_SynchronizeAngularVelocity: 1
+  m_TeleportEnabled: 1
+  m_TeleportIfDistanceGreaterThan: 3
 --- !u!82 &2594983970144784272
 AudioSource:
   m_ObjectHideFlags: 0
