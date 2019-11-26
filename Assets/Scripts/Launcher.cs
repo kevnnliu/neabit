@@ -7,21 +7,22 @@ using Photon.Realtime;
 namespace com.tuth.neabit {
     public class Launcher : MonoBehaviourPunCallbacks {
 
-        #region Private Serializable Fields
+        #region Serializable Fields
 
         [SerializeField]
-        private byte roomMaxPlayers;
+        byte roomMaxPlayers;
 
         [SerializeField]
-        private GameObject controlPanel;
+        GameObject controlPanel;
 
         [SerializeField]
-        private GameObject progressLabel;
+        GameObject progressLabel;
 
         #endregion
 
         #region Private Fields
 
+        [SerializeField]
         string gameVersion = "0.0.1";
         bool isConnecting;
 
@@ -49,15 +50,17 @@ namespace com.tuth.neabit {
         #region Public Methods
 
         public void Connect() {
-            isConnecting = true;
-            progressLabel.SetActive(true);
-            controlPanel.SetActive(false);
+            if (!string.IsNullOrEmpty(PhotonNetwork.NickName)) {
+                isConnecting = true;
+                progressLabel.SetActive(true);
+                controlPanel.SetActive(false);
 
-            if (PhotonNetwork.IsConnected) {
-                PhotonNetwork.JoinRandomRoom();
-            } else {
-                PhotonNetwork.GameVersion = gameVersion;
-                PhotonNetwork.ConnectUsingSettings();
+                if (PhotonNetwork.IsConnected) {
+                    PhotonNetwork.JoinRandomRoom();
+                } else {
+                    PhotonNetwork.GameVersion = gameVersion;
+                    PhotonNetwork.ConnectUsingSettings();
+                }
             }
         }
 
@@ -82,7 +85,7 @@ namespace com.tuth.neabit {
         public override void OnJoinedRoom() {
             Debug.Log("OnJoinedRoom() called by PUN");
 
-            PhotonNetwork.LoadLevel("NetworkScene");
+            PhotonNetwork.LoadLevel("Station");
         }
 
         public override void OnDisconnected(DisconnectCause cause) {

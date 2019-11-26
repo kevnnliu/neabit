@@ -15,15 +15,6 @@ namespace com.tuth.neabit {
         GameObject rigPrefab;
 
         [SerializeField]
-        float maxThrust;
-
-        [SerializeField]
-        float thrustRate;
-
-        [SerializeField]
-        float maxVThrust;
-
-        [SerializeField]
         float maxYaw;
 
         [SerializeField]
@@ -34,14 +25,6 @@ namespace com.tuth.neabit {
 
         [SerializeField]
         float turnSensitivity;
-
-        // Physics
-
-        [SerializeField]
-        float dragCoeff;
-
-        [SerializeField]
-        float dragFactor;
 
         #endregion
 
@@ -54,6 +37,9 @@ namespace com.tuth.neabit {
         GameObject rightTrack;
         RigWrapper playerRig;
         GameObject playerCamera;
+        float yawCoeff;
+        float rollCoeff;
+        float pitchCoeff;
 
         Queue<PlayerMovement> forces;
 
@@ -61,7 +47,7 @@ namespace com.tuth.neabit {
 
         #region Constants
 
-        const float MAX_BOLT_DISTANCE = 60f;
+        const float TRIGGER_THRESHOLD = 0.3f;
 
         #endregion
 
@@ -72,7 +58,6 @@ namespace com.tuth.neabit {
         internal Inputs inputs;
 
         internal float stunned;
-        internal bool boosting;
 
         #endregion
 
@@ -95,26 +80,28 @@ namespace com.tuth.neabit {
             if (PlayerManager.LocalPlayerInstance.Equals(this.gameObject)) {
                 playerCamera = Instantiate(rigPrefab, cameraAnchor.transform.position, Quaternion.identity);
                 playerRig = playerCamera.GetComponent<RigWrapper>();
+                playerRig.setPlayerManager(playerManager);
                 headTrack = playerRig.headTrack;
                 leftTrack = playerRig.leftTrack;
                 rightTrack = playerRig.rightTrack;
-                GetComponent<PlayerManager>().playerCamera = playerCamera;
+                GetComponent<PlayerManager>().setCamera(playerCamera);
                 playerRig.anchor = cameraAnchor.transform;
             }
 
             //
             forces = new Queue<PlayerMovement>();
-            forces.Enqueue(new DragForce(this));
             forces.Enqueue(new ThrustForce(this));
-
-            boosting = false;
+            forces.Enqueue(new BoostForce(this));
+            forces.Enqueue(new DragForce(this));
+            
             stunned = 0;
             rb.maxAngularVelocity = 0;
         }
 
         // Update is called once per frame
         void Update() {
-            // control scheme switch
+
+            // control scheme switches
             if (Input.GetKeyDown(KeyCode.Q)) {
                 KEYBOARD_CONTROL = !KEYBOARD_CONTROL;
                 Debug.Log("Keyboard controls: " + KEYBOARD_CONTROL);
@@ -124,17 +111,10 @@ namespace com.tuth.neabit {
                 Debug.Log("Assisted controls: " + ASSISTED_CONTROL);
             }
 
-            // networked firing
-            if ((Input.GetKey(KeyCode.M) || OVRInput.Get(OVRInput.Button.SecondaryIndexTrigger)) && CONTROLS_ENABLED) {
-                playerManager.fire();
-            }
-
             // Stun
             stunned = Mathf.Clamp(stunned - Time.deltaTime, 0, 3600);
 
-            boosting = false;
-
-            // Non-networked movement?
+            // movement calculations
             inputs = GetMovementInputs();
 
             if (CONTROLS_ENABLED) {
@@ -153,40 +133,56 @@ namespace com.tuth.neabit {
             }
                 
             // free rotation (unclamped)
-            if (true)
-            {
-                float rollCoeff = -inputs.roll * maxRoll * turnSensitivity;
-                float yawCoeff = inputs.yaw * maxYaw * turnSensitivity;
-                float pitchCoeff = -inputs.pitch * maxPitch * turnSensitivity;
+            if (true) {
+                rollCoeff = -inputs.roll * maxRoll * turnSensitivity;
+                yawCoeff = inputs.yaw * maxYaw * turnSensitivity;
+                pitchCoeff = -inputs.pitch * maxPitch * turnSensitivity;
                 transform.RotateAround(transform.position, transform.up, rollCoeff * Time.deltaTime);
                 transform.RotateAround(transform.position, transform.forward, yawCoeff * Time.deltaTime);
                 transform.RotateAround(transform.position, transform.right, pitchCoeff * Time.deltaTime);
                 playerRig.anchorYaw = transform.rotation * Quaternion.Euler(-90f, -180f, 0f);
             }
+            else {
+                // Stunned turning
+            }
+            
+            if (CONTROLS_ENABLED && stunned == 0) {
+                // Boosting takes priority over all else
+                playerManager.boost(inputs.boosting);
+                // firing is an exclusive action
+                if (!inputs.boosting && inputs.firing) {
+                    Vector3 angularVelocity = new Vector3(pitchCoeff, -yawCoeff, 0f);
+                    playerManager.fire(angularVelocity);
+                    playerManager.shield(false); // shielding is an exclusive action but firing takes priority
+                } 
+                else {
+                    playerManager.shield(inputs.shielding);
+                }
+            }
             else
             {
-                // Stunned turning
+                playerManager.boost(false);
             }
         
         }
 
         private void OnTriggerEnter(Collider other)
         {
-            GameObject obj = other.gameObject;
-            if (obj.CompareTag("Boost"))
-            {
-                if (!boosting && Vector3.Dot(rb.velocity, -obj.transform.forward) < 0)
-                {
-                    Debug.Log("BOOOOOOST!");
-                    boosting = true;
-                    forces.Enqueue(new BoostForce(this, obj.transform.forward));
-                }
-            }
+            //GameObject obj = other.gameObject;
+            //if (obj.CompareTag("Boost"))
+            //{
+            //    if (!boosting && Vector3.Dot(rb.velocity, -obj.transform.forward) < 0)
+            //    {
+            //        Debug.Log("BOOOOOOST!");
+            //        boosting = true;
+            //        forces.Enqueue(new BoostForce(this, obj.transform.forward));
+            //    }
+            //}
         }
 
         private void OnCollisionEnter(Collision collision)
         {
-            stunned = 0.5f;
+            stunned = 0.4f;
             
             // Vector3 normal = collision.GetContact(0).normal;
             // Vector3 ortho = Vector3.Project(transform.up, normal);
@@ -207,36 +203,6 @@ namespace com.tuth.neabit {
 
         #region Private Methods
 
-        Vector3 GetPhysicsMovement()
-        {
-            Vector3 forward = Vector3.Project(rb.velocity, transform.up);
-            Vector3 normal = rb.velocity - forward;
-
-            float forwardDrag = inputs.thrust ? dragCoeff / dragFactor : dragCoeff;
-            float normalDrag = inputs.thrust ? dragCoeff * dragFactor : dragCoeff;
-
-            float fmag = Mathf.Clamp(forward.magnitude - forwardDrag * Time.deltaTime, 0, Mathf.Infinity);
-            float nmag = Mathf.Clamp(normal.magnitude - normalDrag * Time.deltaTime, 0, Mathf.Infinity);
-
-            forward = forward.normalized * fmag;
-            normal = normal.normalized * nmag;
-
-            return forward + normal;
-        }
-
-        Vector3 GetDesiredMovement()
-        {
-            Vector3 forward = Vector3.Project(rb.velocity, transform.up);
-
-            if (inputs.thrust)
-            {
-                float fmag = Mathf.Clamp(forward.magnitude + thrustRate * Time.deltaTime, 0, maxThrust);
-                forward = transform.up * fmag;
-            }
-
-            return forward;
-        }
-
         Inputs GetMovementInputs() {
             Vector3 leftTouchP = leftTrack.transform.localPosition;
             Vector3 rightTouchP = rightTrack.transform.localPosition;
@@ -245,22 +211,26 @@ namespace com.tuth.neabit {
             Vector3 averageHandP = 0.5f * (leftTouchP + rightTouchP);
             Vector3 shoulderOffset = new Vector3(0f, 0.4f, 0f);
 
-            float iB = KEYBOARD_CONTROL ? Input.GetAxis("Horizontal") * 90f : calculateTheta(leftTouchP, rightTouchP, false);
+            float iR = KEYBOARD_CONTROL ? Input.GetAxis("Horizontal") * 90f : calculateTheta(leftTouchP, rightTouchP, false);
             float iP = KEYBOARD_CONTROL ? Input.GetAxis("Vertical") * 90f : -calculateTheta(averageHandP, headP - shoulderOffset, false);
             float iY = KEYBOARD_CONTROL ? Input.GetAxis("HorizontalAlt") * 90f : calculateTheta(averageHandP, headP - shoulderOffset, true);
 
-            bool iT = KEYBOARD_CONTROL ? Input.GetKey(KeyCode.Space) : getLeftHandTrigger() > 0.3f;
+            bool iT = KEYBOARD_CONTROL ? Input.GetKey(KeyCode.Space) : getLeftHandTrigger();
+            bool iB = KEYBOARD_CONTROL ? Input.GetKey(KeyCode.LeftShift) && iT : getRightHandTrigger() && iT;
 
-            if (float.IsNaN(iB) || float.IsNaN(iP) || float.IsNaN(iY)) {
-                return new Inputs(0, 0, 0, false);
+            bool iF = KEYBOARD_CONTROL ? Input.GetKey(KeyCode.M) : getRightIndexTrigger();
+            bool iS = KEYBOARD_CONTROL ? Input.GetKey(KeyCode.N) : getLeftIndexTrigger();
+
+            if (float.IsNaN(iR) || float.IsNaN(iP) || float.IsNaN(iY)) {
+                return new Inputs(0, 0, 0, false, false, false, false);
             }
 
-            return new Inputs(iB, iP, iY, iT);
+            return new Inputs(iR, iP, iY, iT, iB, iF, iS);
         }
 
         // input processing, apply polynomial for control smoothing
         float inputSmoothing(float input) {
-            return Mathf.Sign(input) * Mathf.Pow(Mathf.Abs(input), 2); // returns squared and signed input
+            return Mathf.Sign(input) * Mathf.Pow(Mathf.Abs(input), 3); // returns cubed and signed input
         }
 
         float thrustProcessing(bool isThrusting, float rate) {
@@ -271,8 +241,20 @@ namespace com.tuth.neabit {
             }
         }
 
-        float getLeftHandTrigger() {
-            return OVRInput.Get(OVRInput.Axis1D.PrimaryHandTrigger);
+        bool getLeftHandTrigger() {
+            return OVRInput.Get(OVRInput.Axis1D.PrimaryHandTrigger) > TRIGGER_THRESHOLD;
+        }
+
+        bool getRightHandTrigger() {
+            return OVRInput.Get(OVRInput.Axis1D.SecondaryHandTrigger) > TRIGGER_THRESHOLD;
+        }
+
+        bool getRightIndexTrigger() {
+            return OVRInput.Get(OVRInput.Button.SecondaryIndexTrigger);
+        }
+
+        bool getLeftIndexTrigger() {
+            return OVRInput.Get(OVRInput.Button.PrimaryIndexTrigger);
         }
 
         // for assisted control scheme
@@ -294,14 +276,22 @@ namespace com.tuth.neabit {
             public float roll;
             public float pitch;
             public float yaw;
-            public bool thrust;
 
-            public Inputs(float iR, float iP, float iY, bool iT)
+            public bool thrust;
+            public bool boosting;
+
+            public bool firing;
+            public bool shielding;
+
+            public Inputs(float iR, float iP, float iY, bool iT, bool iB, bool iF, bool iS)
             {
                 roll = iR;
                 pitch = iP;
                 yaw = iY;
                 thrust = iT;
+                boosting = iB;
+                firing = iF;
+                shielding = iS;
             }
         }
 

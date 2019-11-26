@@ -9,6 +9,6 @@ EditorBuildSettings:
     path: Assets/Scenes/Launcher.unity
     guid: 598f3f5398ab3304899ea2846a3318e4
   - enabled: 1
-    path: Assets/Scenes/NetworkScene.unity
+    path: Assets/Scenes/Maps/Station.unity
     guid: 805806b5f1c589f41bb998548ed26ae3
   m_configObjects: {}

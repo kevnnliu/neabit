@@ -6,13 +6,6 @@ using Photon.Pun;
 namespace com.tuth.neabit {
     public class Laser : MonoBehaviourPun {
 
-        #region Public Fields
-
-        public GameObject owner;
-        public const float damage = 20f;
-
-        #endregion
-
         #region Private Fields
 
         [SerializeField]
@@ -20,6 +13,11 @@ namespace com.tuth.neabit {
 
         [SerializeField]
         float lifeSpan;
+
+        [SerializeField]
+        float damage = 15f;
+
+        GameObject owner;
 
         #endregion
 
@@ -32,6 +30,10 @@ namespace com.tuth.neabit {
 
         // Update is called once per frame
         void Update() {
+            if (!photonView.IsMine) {
+                return;
+            }
+
             transform.position += transform.forward * boltSpeed * Time.deltaTime;
             lifeSpan -= Time.deltaTime;
             if (lifeSpan < 0) {
@@ -40,18 +42,32 @@ namespace com.tuth.neabit {
 
             RaycastHit hit;
             if (Physics.Raycast(transform.position, transform.forward, out hit, 1f)) {
-                if (hit.transform.CompareTag("Player")) {
+                if (hit.transform.root.CompareTag("Player")) {
+                    // Debug.Log("Laser hit");
                     PlayerManager player = hit.transform.GetComponent<PlayerManager>();
+                    PlayerManager attacker = owner.GetComponent<PlayerManager>();
                     if (owner != hit.transform.gameObject) {
-                        player.takeDamage(damage);
+                        // Debug.Log("Damage registered");
+                        attacker.hitmarkerSound.Play();
+                        player.takeDamage(damage, player, attacker);
                     }
-                    PhotonNetwork.Destroy(this.gameObject);
-                } else {
-                    PhotonNetwork.Destroy(this.gameObject);
                 }
+                PhotonNetwork.Destroy(this.gameObject);
             }
         }
 
 	    #endregion
+
+        #region Public Methods
+
+        public void setOwner(GameObject player) {
+            owner = player;
+        }
+
+        public GameObject getOwner() {
+            return owner;
+        }
+
+        #endregion
     }
 }
