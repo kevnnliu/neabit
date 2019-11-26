@@ -11,16 +11,10 @@ namespace com.tuth.neabit {
 
         public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info) {
             if (stream.IsWriting) {
-                stream.SendNext(isFiring);
                 stream.SendNext(health);
-                stream.SendNext(isBoosting);
-                stream.SendNext(playerID);
             }
             else {
-                this.isFiring = (bool)stream.ReceiveNext();
                 this.health = (float)stream.ReceiveNext();
-                this.isBoosting = (bool)stream.ReceiveNext();
-                this.playerID = (string)stream.ReceiveNext();
             }
         }
 
@@ -127,6 +121,8 @@ namespace com.tuth.neabit {
             }
 
             energy = TOTAL_ENERGY;
+
+            playerController.enabled = photonView.IsMine;
         }
 
         // Update is called once per frame
@@ -135,9 +131,8 @@ namespace com.tuth.neabit {
                 if (playerCamera != null) {
                     playerCamera.SetActive(false);
                 }
+                return;
             }
-
-            playerController.enabled = photonView.IsMine;
 
             regenTimer = Mathf.Max(regenTimer - Time.deltaTime, 0);
 
@@ -146,7 +141,6 @@ namespace com.tuth.neabit {
                 energy += ENERGY_CHARGE_RATE * Time.deltaTime;
             }
             energy = Mathf.Clamp(energy, 0, TOTAL_ENERGY);
-            // energy = TOTAL_ENERGY;
 
             energyMeter.value = energy / TOTAL_ENERGY;
             healthMeter.value = health / FULL_HEALTH;
@@ -234,16 +228,20 @@ namespace com.tuth.neabit {
             playerCamera = cam;
         }
 
-        public void addToField(string fieldName, int amount) {
-            Debug.Log(playerID);
-            Dictionary<string, string> entry = gameManager.getScoreboard()[playerID];
-            int kills = int.Parse(entry[fieldName]) + amount;
-            gameManager.UpdateScoreboardRPCCall(playerID, fieldName, kills.ToString());
+        public void AddToFieldRPCCall(string fieldName, int amount) {
+            photonView.RPC("AddToField", RpcTarget.All, fieldName, amount);
         }
 
         #endregion
 
         #region Private Methods
+
+        [PunRPC]
+        void AddToField(string fieldName, int amount) {
+            Dictionary<string, string> entry = gameManager.getScoreboard()[playerID];
+            int value = int.Parse(entry[fieldName]) + amount;
+            gameManager.UpdateScoreboardRPCCall(playerID, fieldName, value.ToString());
+        }
 
         [PunRPC]
         void Respawn() {
@@ -271,13 +269,12 @@ namespace com.tuth.neabit {
             scoreDisplay[2].text = "Deaths";
 
             foreach (string playerID in scoreboard.Keys) {
-                Debug.Log(playerID);
                 Dictionary<string, string> playerScore = scoreboard[playerID];
                 foreach (string field in playerScore.Keys) {
-                    Debug.Log(field);
                     scoreDisplay[fieldIndex[field]].text += "\n" + playerScore[field];
                 }
             }
+            
         }
 
         Dictionary<string, string> initializeScore() {
