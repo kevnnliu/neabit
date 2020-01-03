@@ -246,9 +246,8 @@ namespace com.tuth.neabit {
 
         [PunRPC]
         void Respawn() {
+            health = FULL_HEALTH;
             if (photonView.IsMine) {
-                health = FULL_HEALTH;
-
                 Transform spawn = gameManager.playerStarts[PhotonNetwork.LocalPlayer.ActorNumber];
                 transform.position = spawn.position;
                 transform.rotation = spawn.rotation;

@@ -923,7 +923,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 33680c846e219fc40a48ad9668704ec6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  roomMaxPlayers: 1
+  roomMaxPlayers: 2
   controlPanel: {fileID: 1071355244}
   progressLabel: {fileID: 684171359}
   gameVersion: 0.0.2
@@ -1074,6 +1074,11 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 823094835715033025, guid: 08be47f80b57d734f999a9b17c67980f,
+        type: 3}
+      propertyPath: resetTrackerOnLoad
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 841267613581216516, guid: 08be47f80b57d734f999a9b17c67980f,
         type: 3}
       propertyPath: m_AnchorMax.x
@@ -1083,11 +1088,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 823094835715033025, guid: 08be47f80b57d734f999a9b17c67980f,
-        type: 3}
-      propertyPath: resetTrackerOnLoad
-      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 08be47f80b57d734f999a9b17c67980f, type: 3}
