@@ -1,6 +1,5 @@
-# Near Orbit
-### Kevin Liu, Dhruba Ghosh
-This repository contains the Near Orbit prototype, our final project submission for VR DeCal, Spring 2019, UC Berkeley. This initial version used Photon Unity Networking under a peer-to-peer multiplayer networking model and the Oculus SDK to process VR inputs. We have since rebuilt the project from scratch, more details below. 
+## Near Orbit
+This repository contains the Near Orbit prototype, a final project submission for VR DeCal, Spring 2019, UC Berkeley. This initial version used Photon Unity Networking under a peer-to-peer multiplayer networking model and the Oculus SDK to process VR inputs. We have since rebuilt the project from scratch, more details below. 
 
 ## Official Project Details
 Near Orbit aims to be a VR multiplayer game where players pilot spacejets with unique weaponry and abilities. The networking is under a server-authoritative server-client model where a server instance simulates and validates in-game events and actions. This promotes consistency across clients and mitigates server authority abuse as would be possible in a peer-to-peer model.
